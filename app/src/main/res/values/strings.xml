@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Fit And Rock</string>
+    <string name="sign_in">Sign In</string>
+    <string name="new_member">New Member</string>
+    <string name="splash_logo">"Be Fit And Rock "</string>
+    <string name="username_place_holder">Username</string>
+    <string name="password_place_holder">Password</string>
+    <string name="login_title">Login</string>
+    <string name="forget_password">Forget Password!</string>
+    <string name="signup_title">Register New User</string>
+</resources>
