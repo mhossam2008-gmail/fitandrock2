@@ -8,4 +8,13 @@
     <string name="login_title">Login</string>
     <string name="forget_password">Forget Password!</string>
     <string name="signup_title">Register New User</string>
+    <string name="api_user">Test</string>
+    <string name="api_pass">Test</string>
+    <string name="api_url">https://www.fitandrock.com/MobAPIs/MobAPIs.php</string>
+    <string name="api_user_header">ApiUser</string>
+    <string name="api_password_header">ApiPassword</string>
+    <string name="api_action_header">Action</string>
+    <string name="fullname_place_holder">Your Name</string>
+    <string name="birthday_place_holder">Birthday</string>
+    <string name="sign_up">Sign Up</string>
 </resources>

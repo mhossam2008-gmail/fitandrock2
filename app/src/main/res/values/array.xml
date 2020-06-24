@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="userTypes">
+        <item>Account Type</item>
+        <item>User</item>
+        <item>Trainer</item>
+        <item>Gym</item>
+    </string-array>
+    <string-array name="gender">
+        <item>Gender</item>
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
+</resources>

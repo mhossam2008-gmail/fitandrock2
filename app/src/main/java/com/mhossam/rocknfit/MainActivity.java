@@ -6,12 +6,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseAppCompatActivity {
 
     @BindView(R.id.buttonGoToLogin)
     Button goToLoginButton;
