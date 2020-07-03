@@ -8,11 +8,11 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
-import com.mhossam.rocknfit.model.AccountInfo;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -50,40 +50,23 @@ public class SignupActivity extends BaseAppCompatActivity {
         setContentView(R.layout.activity_signup);
         ButterKnife.bind(this);
         apiInterface = APIClient.getClient().create(APIInterface.class);
-//        Call<List<AccountInfo>> call = apiInterface.createUser("GetAccountByID","Test", "Test",1);
-        HashMap<String, String> map = new HashMap<>();
-        map.put("Action", "GetAccountByID");
+////        Call<List<AccountInfo>> call = apiInterface.createUser("GetAccountByID","Test", "Test",1);
+//        HashMap<String, String> map = new HashMap<>();
+////        map.put("Action", "GetAccountByID");
 //        map.put("Action","AddAccount");
-        map.put("ApiUser", "Test");
-        map.put("ApiPass", "Test");
-        map.put("AccountID", "1");
-        map.put("FirstName", "Mohamed");
-        map.put("LastName", "Hossam");
-        map.put("Email", "mhossam2008@gmail.com");
-        map.put("Gender", "Male");
-        map.put("DOB", "20/11/1986");
-        map.put("Type", "A");
-        //Add New Account (Action=AddAccount),
-        //FirstName, LastName, Email, Password, Gender, DOB, Type (‘A’,’T’,’G’)
-
-        Call<Map<String, AccountInfo>> call = apiInterface.addAccount(map);
-
-        call.enqueue(new Callback<Map<String, AccountInfo>>() {
-            @Override
-            public void onResponse(Call<Map<String, AccountInfo>> call, Response<Map<String, AccountInfo>> response) {
-
-                Log.d("TAG", response.code() + "");
-
-                Map<String, AccountInfo> resource = response.body();
-                System.out.println(resource.get("1").toString());
-
-            }
-
-            @Override
-            public void onFailure(Call<Map<String, AccountInfo>> call, Throwable t) {
-                call.cancel();
-            }
-        });
+//        map.put("ApiUser", "Test");
+//        map.put("ApiPass", "Test");
+////        map.put("AccountID", "1");
+//
+//        map.put("FirstName", "Mohamed");
+//        map.put("LastName", "Hossam");
+//        map.put("Email", "mhossam2008@gmail.com");
+//        map.put("Gender", "Male");
+//        map.put("DOB", "20/11/1986");
+//        map.put("Type", "A");
+//        //Add New Account (Action=AddAccount),
+//        //FirstName, LastName, Email, Password, Gender, DOB, Type (‘A’,’T’,’G’)
+//
 
 
         final Calendar myCalendar = Calendar.getInstance();
@@ -111,6 +94,24 @@ public class SignupActivity extends BaseAppCompatActivity {
             @Override
             public void onClick(View view) {
                 Map<String, String> parametersMap = prepareRequestMap();
+                Call<String> call = apiInterface.addAccount(parametersMap);
+
+                call.enqueue(new Callback<String>() {
+                    @Override
+                    public void onResponse(Call<String> call, Response<String> response) {
+
+                        Log.d("TAG", response.code() + "");
+
+                        String resource = response.body();
+                        Toast.makeText(SignupActivity.this, resource, Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(Call<String> call, Throwable t) {
+                        call.cancel();
+                    }
+                });
+
             }
         });
 
@@ -119,14 +120,17 @@ public class SignupActivity extends BaseAppCompatActivity {
     private Map<String, String> prepareRequestMap() {
         HashMap<String, String> result = new HashMap<>();
         //FirstName, LastName, Email, Password, Gender, DOB, Type (‘A’,’T’,’G’)
-//        result.put("FirstName",);
-//        result.put("LastName",);
+        String[] nameArray = fullName.getText().toString().split(" ");
+        result.put("FirstName", nameArray[0]);
+        result.put("LastName", nameArray.length > 1 ? nameArray[1] : "");
         result.put("Email", userName.getText().toString());
         result.put("Password", password.getText().toString());
         result.put("Gender", gender.getSelectedItem().toString());
         result.put("DOB", birthday.getText().toString());
-
-        String selectedType = gender.getSelectedItem().toString();
+        result.put("Action", "AddAccount");
+        result.put("ApiUser", "Test");
+        result.put("ApiPass", "Test");
+        String selectedType = accountType.getSelectedItem().toString();
         if ("User".equals(selectedType)) {
             result.put("Type", "A");
         } else if ("Trainer".equals(selectedType)) {
@@ -139,6 +143,6 @@ public class SignupActivity extends BaseAppCompatActivity {
     }
 
     private void updateLabel() {
-        birthday.setText(new StringBuilder().append(_day).append("/").append(_month + 1).append("/").append(_birthYear).append(" "));
+        birthday.setText(new StringBuilder().append(_day).append("/").append(_month + 1).append("/").append(_birthYear));
     }
 }
