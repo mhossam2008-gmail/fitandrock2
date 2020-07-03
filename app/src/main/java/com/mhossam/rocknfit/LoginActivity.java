@@ -1,5 +1,6 @@
 package com.mhossam.rocknfit;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,7 +13,9 @@ import androidx.room.Room;
 import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
 import com.mhossam.rocknfit.database.AppDatabase;
 import com.mhossam.rocknfit.model.AccountInfo;
+import com.mhossam.rocknfit.model.LoggedInUser;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -39,29 +42,39 @@ public class LoginActivity extends BaseAppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Map<String, String> parametersMap = prepareLoginRequestMap();
-                Call<Map<String, AccountInfo>> call = apiInterface.login(parametersMap);
+                Map<String, String> parametersMap = prepareRequestMap();
+                Call<Map<String, LoggedInUser>> call = apiInterface.login(parametersMap);
 
-                call.enqueue(new Callback<Map<String, AccountInfo>>() {
+                call.enqueue(new Callback<Map<String, LoggedInUser>>() {
                     @Override
-                    public void onResponse(Call<Map<String, AccountInfo>> call, Response<Map<String, AccountInfo>> response) {
+                    public void onResponse(Call<Map<String, LoggedInUser>> call, Response<Map<String, LoggedInUser>> response) {
 
                         Log.d("TAG", response.code() + "");
 
-                        Map<String, AccountInfo> resource = response.body();
-                        System.out.println(resource.get("1").toString());
-                        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                                AppDatabase.class, "rockAndFit").allowMainThreadQueries().build();
-                        db.accountInfoDao().insertAll(resource.get("1"));
+                        Map<String, LoggedInUser> resource = response.body();
+                        if(response.body()!=null&&response.body().size()==1)
+                        {
+                            AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                                AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+                            db.loggedInUserDao().insertAll(resource.get("1"));
+                            for (LoggedInUser accountInfo:db.loggedInUserDao().getAll()) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Intent i = new Intent(getApplicationContext() , FeedActivity.class);
+                                        startActivity(i);
+                                        finish();
+                                    }
+                                });
 
-                        for (AccountInfo accountInfo:db.accountInfoDao().getAll()) {
-                            System.out.println(accountInfo);
+                            }
+                        }else{
+                            Toast.makeText(LoginActivity.this, "Wrong username/password", Toast.LENGTH_SHORT).show();
                         }
-//                        Toast.makeText(LoginActivity.this, resource, Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
-                    public void onFailure(Call<Map<String, AccountInfo>> call, Throwable t) {
+                    public void onFailure(Call<Map<String, LoggedInUser>> call, Throwable t) {
                         call.cancel();
                     }
                 });
@@ -71,8 +84,9 @@ public class LoginActivity extends BaseAppCompatActivity {
 
     }
 
-    private Map<String, String> prepareLoginRequestMap() {
-        Map<String,String> result = super.prepareRequestMap();
+    @Override
+    protected HashMap<String, String> prepareRequestMap() {
+        HashMap<String,String> result = super.prepareRequestMap();
         result.put("Action", "AccountLogin");
         result.put("AccountEmail",username.getText().toString());
         result.put("AccountPassword",password.getText().toString());

@@ -10,6 +10,7 @@ import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.R;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class BaseAppCompatActivity extends AppCompatActivity {
     protected String apiUserHeader;

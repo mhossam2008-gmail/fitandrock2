@@ -1,6 +1,7 @@
 package com.mhossam.rocknfit.API;
 
 import com.mhossam.rocknfit.model.AccountInfo;
+import com.mhossam.rocknfit.model.LoggedInUser;
 
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public interface APIInterface {
 
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")
-    Call<Map<String, AccountInfo>> login(@FieldMap Map<String, String> params);
+    Call<Map<String, LoggedInUser>> login(@FieldMap Map<String, String> params);
 
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")

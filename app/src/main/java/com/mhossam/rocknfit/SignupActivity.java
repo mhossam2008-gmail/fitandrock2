@@ -71,21 +71,24 @@ public class SignupActivity extends BaseAppCompatActivity {
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Map<String, String> parametersMap = prepareSignupRequestMap();
+                Map<String, String> parametersMap = prepareRequestMap();
                 Call<String> call = apiInterface.addAccount(parametersMap);
 
                 call.enqueue(new Callback<String>() {
                     @Override
                     public void onResponse(Call<String> call, Response<String> response) {
-
                         Log.d("TAG", response.code() + "");
-
                         String resource = response.body();
-                        Toast.makeText(SignupActivity.this, resource, Toast.LENGTH_SHORT).show();
+                        if(resource!=null&&resource.contains("Done")) {
+                            Toast.makeText(SignupActivity.this, "Please check your mail to activate account", Toast.LENGTH_SHORT).show();
+                        }else{
+                            Toast.makeText(SignupActivity.this, resource, Toast.LENGTH_SHORT).show();
+                        }
                     }
 
                     @Override
                     public void onFailure(Call<String> call, Throwable t) {
+                        Toast.makeText(SignupActivity.this, "Internal Server Error", Toast.LENGTH_SHORT).show();
                         call.cancel();
                     }
                 });
@@ -95,7 +98,8 @@ public class SignupActivity extends BaseAppCompatActivity {
 
     }
 
-    protected Map<String, String> prepareSignupRequestMap() {
+    @Override
+    protected HashMap<String, String> prepareRequestMap() {
         HashMap<String, String> result = super.prepareRequestMap();
         result.put("Action", "AddAccount");
         String[] nameArray = fullName.getText().toString().split(" ");
