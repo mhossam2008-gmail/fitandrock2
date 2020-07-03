@@ -10,8 +10,6 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.mhossam.rocknfit.API.APIClient;
-import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
 
 import java.util.Calendar;
@@ -27,7 +25,7 @@ import retrofit2.Response;
 public class SignupActivity extends BaseAppCompatActivity {
     @BindView(R.id.buttonSignup)
     Button signup;
-    @BindView(R.id.fullNameEditText)
+    @BindView(R.id.usernameEditText)
     EditText fullName;
     @BindView(R.id.emailEditText)
     EditText userName;
@@ -42,32 +40,12 @@ public class SignupActivity extends BaseAppCompatActivity {
     private int _birthYear;
     private int _month;
     private int _day;
-    APIInterface apiInterface;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
         ButterKnife.bind(this);
-        apiInterface = APIClient.getClient().create(APIInterface.class);
-////        Call<List<AccountInfo>> call = apiInterface.createUser("GetAccountByID","Test", "Test",1);
-//        HashMap<String, String> map = new HashMap<>();
-////        map.put("Action", "GetAccountByID");
-//        map.put("Action","AddAccount");
-//        map.put("ApiUser", "Test");
-//        map.put("ApiPass", "Test");
-////        map.put("AccountID", "1");
-//
-//        map.put("FirstName", "Mohamed");
-//        map.put("LastName", "Hossam");
-//        map.put("Email", "mhossam2008@gmail.com");
-//        map.put("Gender", "Male");
-//        map.put("DOB", "20/11/1986");
-//        map.put("Type", "A");
-//        //Add New Account (Action=AddAccount),
-//        //FirstName, LastName, Email, Password, Gender, DOB, Type (‘A’,’T’,’G’)
-//
-
 
         final Calendar myCalendar = Calendar.getInstance();
         final DatePickerDialog.OnDateSetListener date = new DatePickerDialog.OnDateSetListener() {
@@ -93,7 +71,7 @@ public class SignupActivity extends BaseAppCompatActivity {
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Map<String, String> parametersMap = prepareRequestMap();
+                Map<String, String> parametersMap = prepareSignupRequestMap();
                 Call<String> call = apiInterface.addAccount(parametersMap);
 
                 call.enqueue(new Callback<String>() {
@@ -117,9 +95,9 @@ public class SignupActivity extends BaseAppCompatActivity {
 
     }
 
-    private Map<String, String> prepareRequestMap() {
-        HashMap<String, String> result = new HashMap<>();
-        //FirstName, LastName, Email, Password, Gender, DOB, Type (‘A’,’T’,’G’)
+    protected Map<String, String> prepareSignupRequestMap() {
+        HashMap<String, String> result = super.prepareRequestMap();
+        result.put("Action", "AddAccount");
         String[] nameArray = fullName.getText().toString().split(" ");
         result.put("FirstName", nameArray[0]);
         result.put("LastName", nameArray.length > 1 ? nameArray[1] : "");
@@ -127,9 +105,7 @@ public class SignupActivity extends BaseAppCompatActivity {
         result.put("Password", password.getText().toString());
         result.put("Gender", gender.getSelectedItem().toString());
         result.put("DOB", birthday.getText().toString());
-        result.put("Action", "AddAccount");
-        result.put("ApiUser", "Test");
-        result.put("ApiPass", "Test");
+
         String selectedType = accountType.getSelectedItem().toString();
         if ("User".equals(selectedType)) {
             result.put("Type", "A");
@@ -143,6 +119,8 @@ public class SignupActivity extends BaseAppCompatActivity {
     }
 
     private void updateLabel() {
-        birthday.setText(new StringBuilder().append(_day).append("/").append(_month + 1).append("/").append(_birthYear));
+        birthday.setText(new StringBuilder().append(String.format("%02d", _day))
+                .append("/").append(String.format("%02d", _month + 1))
+                .append("/").append(_birthYear));
     }
 }

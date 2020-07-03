@@ -13,9 +13,9 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends BaseAppCompatActivity {
 
-    @BindView(R.id.buttonGoToLogin)
+    @BindView(R.id.buttonLogin)
     Button goToLoginButton;
-    @BindView(R.id.tvGoToSignup)
+    @BindView(R.id.goToForgetPasswordTV)
     TextView goToSignup;
 
     @Override

@@ -17,6 +17,10 @@ public interface APIInterface {
 
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")
+    Call<Map<String, AccountInfo>> login(@FieldMap Map<String, String> params);
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
     Call<String> addAccount(@FieldMap Map<String, String> params);
 
 //    @GET("/api/users?")

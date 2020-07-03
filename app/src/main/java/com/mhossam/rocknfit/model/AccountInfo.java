@@ -1,20 +1,27 @@
 package com.mhossam.rocknfit.model;
 
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 
+@Entity
 public class AccountInfo implements Serializable {
 
     private final static long serialVersionUID = -1566614624387266039L;
     @SerializedName("AccountID")
     @Expose
+    @PrimaryKey
+    @NotNull
     private String accountID;
     @SerializedName("AccountFirstName")
     @Expose
@@ -57,7 +64,7 @@ public class AccountInfo implements Serializable {
     private String loginFailedTrials;
     @SerializedName("LastPasswordChange")
     @Expose
-    private Object lastPasswordChange;
+    private String lastPasswordChange;
     @SerializedName("AccountImage")
     @Expose
     private String accountImage;
@@ -96,19 +103,19 @@ public class AccountInfo implements Serializable {
     private String contactNumber;
     @SerializedName("LittleDescription")
     @Expose
-    private Object littleDescription;
+    private String littleDescription;
     @SerializedName("Hobbies")
     @Expose
-    private Object hobbies;
+    private String hobbies;
     @SerializedName("MaritalStatus")
     @Expose
     private String maritalStatus;
     @SerializedName("FacebookUrl")
     @Expose
-    private Object facebookUrl;
+    private String facebookUrl;
     @SerializedName("TwitterUrl")
     @Expose
-    private Object twitterUrl;
+    private String twitterUrl;
     @SerializedName("WhoCanFollow")
     @Expose
     private String whoCanFollow;
@@ -343,15 +350,15 @@ public class AccountInfo implements Serializable {
         return this;
     }
 
-    public Object getLastPasswordChange() {
+    public String getLastPasswordChange() {
         return lastPasswordChange;
     }
 
-    public void setLastPasswordChange(Object lastPasswordChange) {
+    public void setLastPasswordChange(String lastPasswordChange) {
         this.lastPasswordChange = lastPasswordChange;
     }
 
-    public AccountInfo withLastPasswordChange(Object lastPasswordChange) {
+    public AccountInfo withLastPasswordChange(String lastPasswordChange) {
         this.lastPasswordChange = lastPasswordChange;
         return this;
     }
@@ -512,28 +519,28 @@ public class AccountInfo implements Serializable {
         return this;
     }
 
-    public Object getLittleDescription() {
+    public String getLittleDescription() {
         return littleDescription;
     }
 
-    public void setLittleDescription(Object littleDescription) {
+    public void setLittleDescription(String littleDescription) {
         this.littleDescription = littleDescription;
     }
 
-    public AccountInfo withLittleDescription(Object littleDescription) {
+    public AccountInfo withLittleDescription(String littleDescription) {
         this.littleDescription = littleDescription;
         return this;
     }
 
-    public Object getHobbies() {
+    public String getHobbies() {
         return hobbies;
     }
 
-    public void setHobbies(Object hobbies) {
+    public void setHobbies(String hobbies) {
         this.hobbies = hobbies;
     }
 
-    public AccountInfo withHobbies(Object hobbies) {
+    public AccountInfo withHobbies(String hobbies) {
         this.hobbies = hobbies;
         return this;
     }
@@ -551,28 +558,28 @@ public class AccountInfo implements Serializable {
         return this;
     }
 
-    public Object getFacebookUrl() {
+    public String getFacebookUrl() {
         return facebookUrl;
     }
 
-    public void setFacebookUrl(Object facebookUrl) {
+    public void setFacebookUrl(String facebookUrl) {
         this.facebookUrl = facebookUrl;
     }
 
-    public AccountInfo withFacebookUrl(Object facebookUrl) {
+    public AccountInfo withFacebookUrl(String facebookUrl) {
         this.facebookUrl = facebookUrl;
         return this;
     }
 
-    public Object getTwitterUrl() {
+    public String getTwitterUrl() {
         return twitterUrl;
     }
 
-    public void setTwitterUrl(Object twitterUrl) {
+    public void setTwitterUrl(String twitterUrl) {
         this.twitterUrl = twitterUrl;
     }
 
-    public AccountInfo withTwitterUrl(Object twitterUrl) {
+    public AccountInfo withTwitterUrl(String twitterUrl) {
         this.twitterUrl = twitterUrl;
         return this;
     }
