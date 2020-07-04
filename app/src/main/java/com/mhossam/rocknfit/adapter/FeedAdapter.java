@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.mhossam.rocknfit.FeedActivity;
 import com.mhossam.rocknfit.R;
+import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.view.LoadingFeedItemView;
 
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public static final int VIEW_TYPE_DEFAULT = 1;
     public static final int VIEW_TYPE_LOADER = 2;
 
-    private final List<FeedItem> feedItems = new ArrayList<>();
+    private final List<Post> feedItems = new ArrayList<>();
 
     private Context context;
     private OnFeedItemClickListener onFeedItemClickListener;
@@ -81,7 +82,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             @Override
             public void onClick(View v) {
                 int adapterPosition = cellFeedViewHolder.getAdapterPosition();
-                feedItems.get(adapterPosition).likesCount++;
+//                feedItems.get(adapterPosition).likesCount++;
                 notifyItemChanged(adapterPosition, ACTION_LIKE_IMAGE_CLICKED);
                 if (context instanceof FeedActivity) {
                     ((FeedActivity) context).showLikedSnackbar();
@@ -92,7 +93,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             @Override
             public void onClick(View v) {
                 int adapterPosition = cellFeedViewHolder.getAdapterPosition();
-                feedItems.get(adapterPosition).likesCount++;
+//                feedItems.get(adapterPosition).getLikesCounter()++;
                 notifyItemChanged(adapterPosition, ACTION_LIKE_BUTTON_CLICKED);
                 if (context instanceof FeedActivity) {
                     ((FeedActivity) context).showLikedSnackbar();
@@ -141,17 +142,9 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return feedItems.size();
     }
 
-    public void updateItems(boolean animated) {
+    public void updateItems(boolean animated , List<Post> updatedFeedItems) {
         feedItems.clear();
-        feedItems.addAll(Arrays.asList(
-                new FeedItem(33, false),
-                new FeedItem(1, false),
-                new FeedItem(223, false),
-                new FeedItem(2, false),
-                new FeedItem(6, false),
-                new FeedItem(8, false),
-                new FeedItem(99, false)
-        ));
+        feedItems.addAll(updatedFeedItems);
         if (animated) {
             notifyItemRangeInserted(0, feedItems.size());
         } else {
@@ -190,25 +183,26 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         @BindView(R.id.vImageRoot)
         FrameLayout vImageRoot;
 
-        FeedItem feedItem;
+        Post feedItem;
 
         public CellFeedViewHolder(View view) {
             super(view);
             ButterKnife.bind(this, view);
         }
 
-        public void bindView(FeedItem feedItem) {
+        public void bindView(Post feedItem) {
             this.feedItem = feedItem;
             int adapterPosition = getAdapterPosition();
-            ivFeedCenter.setImageResource(adapterPosition % 2 == 0 ? R.drawable.img_feed_center_1 : R.drawable.img_feed_center_2);
-            ivFeedBottom.setImageResource(adapterPosition % 2 == 0 ? R.drawable.img_feed_bottom_1 : R.drawable.img_feed_bottom_2);
-            btnLike.setImageResource(feedItem.isLiked ? R.drawable.ic_heart_red : R.drawable.ic_heart_outline_grey);
+//            ivFeedCenter.setImageResource(adapterPosition % 2 == 0 ? R.drawable.img_feed_center_1 : R.drawable.img_feed_center_2);
+//            ivFeedBottom.setImageResource(adapterPosition % 2 == 0 ? R.drawable.img_feed_bottom_1 : R.drawable.img_feed_bottom_2);
+
+            btnLike.setImageResource(true ? R.drawable.ic_heart_red : R.drawable.ic_heart_outline_grey);
             tsLikesCounter.setCurrentText(vImageRoot.getResources().getQuantityString(
-                    R.plurals.likes_count, feedItem.likesCount, feedItem.likesCount
+                    R.plurals.likes_count, feedItem.getLikesCounter(), feedItem.getLikesCounter()
             ));
         }
 
-        public FeedItem getFeedItem() {
+        public Post getFeedItem() {
             return feedItem;
         }
     }
@@ -223,7 +217,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         }
 
         @Override
-        public void bindView(FeedItem feedItem) {
+        public void bindView(Post feedItem) {
             super.bindView(feedItem);
         }
     }

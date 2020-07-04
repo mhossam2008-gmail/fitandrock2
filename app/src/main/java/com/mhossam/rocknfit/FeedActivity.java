@@ -1,10 +1,8 @@
 package com.mhossam.rocknfit;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -15,22 +13,20 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
-import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
-import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
 import com.mhossam.rocknfit.Utils.Utils;
 import com.mhossam.rocknfit.adapter.FeedAdapter;
 import com.mhossam.rocknfit.adapter.FeedItemAnimator;
-import com.mhossam.rocknfit.database.AppDatabase;
-import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.view.BaseDrawerActivity;
 import com.mhossam.rocknfit.view.FeedContextMenu;
 import com.mhossam.rocknfit.view.FeedContextMenuManager;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -65,40 +61,7 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
         ButterKnife.bind(this);
 
 
-        Map<String, String> parametersMap = prepareRequestMap();
-        Call<Map<String, Post>> call = apiInterface.getPosts(parametersMap);
 
-        call.enqueue(new Callback<Map<String, Post>>() {
-            @Override
-            public void onResponse(Call<Map<String, Post>> call, Response<Map<String, Post>> response) {
-
-                Log.d("TAG", response.code() + "");
-
-                Map<String, Post> resource = response.body();
-                if (resource != null) {
-                    for (Map.Entry<String, Post> entry : resource.entrySet()) {
-                        String key = entry.getKey();
-                        Post value = entry.getValue();
-                        System.out.println(value);
-                        // do what you have to do here
-                        // In your case, another loop.
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Map<String, Post>> call, Throwable t) {
-                call.cancel();
-            }
-        });
-
-        setupFeed();
-
-        if (savedInstanceState == null) {
-            pendingIntroAnimation = true;
-        } else {
-            feedAdapter.updateItems(false);
-        }
     }
 
     private void setupFeed() {
@@ -143,14 +106,34 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        if (pendingIntroAnimation) {
-            pendingIntroAnimation = false;
-            startIntroAnimation();
-        }
+        pendingIntroAnimation = false;
+        Map<String, String> parametersMap = prepareRequestMap();
+        Call<Map<String, Post>> call = apiInterface.getPosts(parametersMap);
+
+        call.enqueue(new Callback<Map<String, Post>>() {
+            @Override
+            public void onResponse(Call<Map<String, Post>> call, Response<Map<String, Post>> response) {
+
+                Log.d("TAG", response.code() + "");
+
+                Map<String, Post> resource = response.body();
+                if (resource != null) {
+                    setupFeed();
+                    startIntroAnimation(resource);
+//                        feedAdapter.updateItems(true,new ArrayList<Post>());
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Map<String, Post>> call, Throwable t) {
+                call.cancel();
+            }
+        });
         return true;
     }
 
-    private void startIntroAnimation() {
+    private void startIntroAnimation(Map<String, Post> resource) {
         fabCreate.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_fab_size));
 
         int actionbarSize = Utils.dpToPx(56);
@@ -173,20 +156,20 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        startContentAnimation();
+                        startContentAnimation(new ArrayList<Post>(resource.values()));
                     }
                 })
                 .start();
     }
 
-    private void startContentAnimation() {
+    private void startContentAnimation(List<Post> values) {
         fabCreate.animate()
                 .translationY(0)
                 .setInterpolator(new OvershootInterpolator(1.f))
                 .setStartDelay(300)
                 .setDuration(ANIM_DURATION_FAB)
                 .start();
-        feedAdapter.updateItems(true);
+        feedAdapter.updateItems(true, values);
     }
 
     @Override
@@ -249,17 +232,6 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
     @Override
     protected HashMap<String, String> prepareRequestMap() {
         HashMap<String, String> result = super.prepareRequestMap();
-        /*
-        Action:GetPosts
-ApiUser:Test
-ApiPass:Test
-AccountID:0
-MyAccount:95
-//PostID:339
-Index:0
-Size:25
-Type:0
-        * */
         result.put("Action", "GetPosts");
         result.put("AccountID", "0");
         result.put("MyAccount", "95");

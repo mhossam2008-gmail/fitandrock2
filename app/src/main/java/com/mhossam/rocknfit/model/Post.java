@@ -37,7 +37,7 @@ public class Post implements Serializable, Parcelable
     private String commentsCounter;
     @SerializedName("LikesCounter")
     @Expose
-    private String likesCounter;
+    private Integer likesCounter;
     @SerializedName("ShareCounter")
     @Expose
     private String shareCounter;
@@ -112,7 +112,7 @@ public class Post implements Serializable, Parcelable
         this.postMedia = ((Object) in.readValue((Object.class.getClassLoader())));
         this.shareText = ((Object) in.readValue((Object.class.getClassLoader())));
         this.commentsCounter = ((String) in.readValue((String.class.getClassLoader())));
-        this.likesCounter = ((String) in.readValue((String.class.getClassLoader())));
+        this.likesCounter = ((Integer) in.readValue((String.class.getClassLoader())));
         this.shareCounter = ((String) in.readValue((String.class.getClassLoader())));
         this.originalPostID = ((String) in.readValue((String.class.getClassLoader())));
         this.creationDate = ((String) in.readValue((String.class.getClassLoader())));
@@ -225,15 +225,15 @@ public class Post implements Serializable, Parcelable
         return this;
     }
 
-    public String getLikesCounter() {
+    public Integer getLikesCounter() {
         return likesCounter;
     }
 
-    public void setLikesCounter(String likesCounter) {
+    public void setLikesCounter(Integer likesCounter) {
         this.likesCounter = likesCounter;
     }
 
-    public Post withLikesCounter(String likesCounter) {
+    public Post withLikesCounter(Integer likesCounter) {
         this.likesCounter = likesCounter;
         return this;
     }

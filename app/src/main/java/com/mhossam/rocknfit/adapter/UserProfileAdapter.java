@@ -17,6 +17,7 @@ import com.mhossam.rocknfit.Utils.Utils;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,7 +43,9 @@ public class UserProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     public UserProfileAdapter(Context context) {
         this.context = context;
         this.cellSize = Utils.getScreenWidth(context) / 3;
-        this.photos = Arrays.asList(context.getResources().getStringArray(R.array.user_photos));
+        this.photos = new ArrayList<>();
+//        this.photos = Arrays.asList()
+//        this.photos = Arrays.asList(context.getResources().getStringArray(R.array.user_photos));
     }
 
     @Override

@@ -96,7 +96,7 @@ public class FeedItemAnimator extends DefaultItemAnimator {
             FeedAdapter.CellFeedViewHolder holder = (FeedAdapter.CellFeedViewHolder) newHolder;
 
             animateHeartButton(holder);
-            updateLikesCounter(holder, holder.getFeedItem().likesCount);
+            updateLikesCounter(holder, holder.getFeedItem().getLikesCounter());
             if (FeedAdapter.ACTION_LIKE_IMAGE_CLICKED.equals(feedItemHolderInfo.updateAction)) {
                 animatePhotoLike(holder);
             }
@@ -208,7 +208,6 @@ public class FeedItemAnimator extends DefaultItemAnimator {
             }
         });
         animatorSet.start();
-
         likeAnimationsMap.put(holder, animatorSet);
     }
 

@@ -30,8 +30,8 @@ public class BaseDrawerActivity extends BaseActivity {
 
     @BindDimen(R.dimen.global_menu_avatar_size)
     int avatarSize;
-    @BindString(R.string.user_profile_photo)
-    String profilePhoto;
+//    @BindString(R.string.user_profile_photo)
+//    String profilePhoto;
 
     //Cannot be bound via Butterknife, hosting view is initialized later (see setupHeader() method)
     private ImageView ivMenuUserProfilePhoto;
@@ -68,13 +68,13 @@ public class BaseDrawerActivity extends BaseActivity {
             }
         });
 
-        Picasso.get()
-                .load(profilePhoto)
-                .placeholder(R.drawable.img_circle_placeholder)
-                .resize(avatarSize, avatarSize)
-                .centerCrop()
-                .transform(new CircleTransformation())
-                .into(ivMenuUserProfilePhoto);
+//        Picasso.get()
+//                .load(profilePhoto)
+//                .placeholder(R.drawable.img_circle_placeholder)
+//                .resize(avatarSize, avatarSize)
+//                .centerCrop()
+//                .transform(new CircleTransformation())
+//                .into(ivMenuUserProfilePhoto);
     }
 
     public void onGlobalMenuHeaderClick(final View v) {
