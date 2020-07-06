@@ -35,7 +35,7 @@ public class BaseAppCompatActivity extends AppCompatActivity {
         apiURL = getString(R.string.api_url);
     }
 
-    protected HashMap<String, String> prepareRequestMap() {
+    public HashMap<String, String> prepareRequestMap() {
         HashMap<String, String> result = new HashMap<>();
         result.put("ApiUser", "Test");
         result.put("ApiPass", "Test");

@@ -85,7 +85,7 @@ public class LoginActivity extends BaseAppCompatActivity {
     }
 
     @Override
-    protected HashMap<String, String> prepareRequestMap() {
+    public HashMap<String, String> prepareRequestMap() {
         HashMap<String,String> result = super.prepareRequestMap();
         result.put("Action", "AccountLogin");
         result.put("AccountEmail",username.getText().toString());

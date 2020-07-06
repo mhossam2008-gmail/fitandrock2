@@ -2,6 +2,8 @@ package com.mhossam.rocknfit.adapter;
 
 import android.content.Context;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,19 +11,22 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextSwitcher;
+import android.widget.TextView;
 
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.mhossam.rocknfit.FeedActivity;
 import com.mhossam.rocknfit.R;
+import com.mhossam.rocknfit.Utils.CircleTransformation;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.view.LoadingFeedItemView;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
+import butterknife.BindDimen;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -50,7 +55,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_DEFAULT) {
             View view = LayoutInflater.from(context).inflate(R.layout.item_feed, parent, false);
-            CellFeedViewHolder cellFeedViewHolder = new CellFeedViewHolder(view);
+            CellFeedViewHolder cellFeedViewHolder = new CellFeedViewHolder(view,context);
             setupClickableViews(view, cellFeedViewHolder);
             return cellFeedViewHolder;
         } else if (viewType == VIEW_TYPE_LOADER) {
@@ -59,7 +64,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT)
             );
-            return new LoadingCellFeedViewHolder(view);
+            return new LoadingCellFeedViewHolder(view, context);
         }
 
         return null;
@@ -162,10 +167,11 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     public static class CellFeedViewHolder extends RecyclerView.ViewHolder {
+        private final Context context;
         @BindView(R.id.ivFeedCenter)
         ImageView ivFeedCenter;
         @BindView(R.id.ivFeedBottom)
-        ImageView ivFeedBottom;
+        TextView ivFeedBottom;
         @BindView(R.id.btnComments)
         ImageButton btnComments;
         @BindView(R.id.btnLike)
@@ -182,12 +188,21 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         ImageView ivUserProfile;
         @BindView(R.id.vImageRoot)
         FrameLayout vImageRoot;
+        @BindView(R.id.postTextTV)
+        TextView postTextView;
+        @BindView(R.id.tvProfileName)
+        TextView tvProfileName;
+        @BindView(R.id.playIcon)
+        ImageView playIcon;
+        @BindDimen(R.dimen.global_menu_avatar_size)
+        int avatarSize;
 
         Post feedItem;
 
-        public CellFeedViewHolder(View view) {
+        public CellFeedViewHolder(View view, Context context) {
             super(view);
             ButterKnife.bind(this, view);
+            this.context = context;
         }
 
         public void bindView(Post feedItem) {
@@ -195,7 +210,64 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             int adapterPosition = getAdapterPosition();
 //            ivFeedCenter.setImageResource(adapterPosition % 2 == 0 ? R.drawable.img_feed_center_1 : R.drawable.img_feed_center_2);
 //            ivFeedBottom.setImageResource(adapterPosition % 2 == 0 ? R.drawable.img_feed_bottom_1 : R.drawable.img_feed_bottom_2);
+            String profilePhoto = "https://www.fitandrock.com"+feedItem.getProfilePicturePath();
+            playIcon.setVisibility(View.GONE);
+            if(feedItem.getPostMedia() == null || feedItem.getPostMedia().equals("")){
+                vImageRoot.setVisibility(View.GONE);
+            }else if(feedItem.getPostMedia() instanceof String &&((String) feedItem.getPostMedia()).contains("youtube")){
+                String postPhoto = ((String) feedItem.getPostMedia()).replace("www.youtube.com/watch?v=","img.youtube.com/vi/");
+                postPhoto+="/mqdefault.jpg";
 
+                Picasso.get()
+                        .load(postPhoto)
+                        .placeholder(R.drawable.img_circle_placeholder)
+                        .fit()
+//                        .centerCrop()
+//                        .resize(avatarSize,avatarSize)
+//                        .transform(new SquareTransformation())
+                        .into(ivFeedCenter);
+                playIcon.setVisibility(View.VISIBLE);
+                ivFeedCenter.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.setPackage("com.google.android.youtube");
+                        context.startActivity(intent);
+                    }
+                });
+                playIcon.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.setPackage("com.google.android.youtube");
+                        context.startActivity(intent);
+                    }
+                });
+            }
+            else{
+                String postPhoto = "https://www.fitandrock.com"+feedItem.getFullImagePath();
+
+                Picasso.get()
+                        .load(postPhoto)
+                        .placeholder(R.drawable.img_circle_placeholder)
+                        .fit()
+//                        .centerCrop()
+//                        .resize(avatarSize,avatarSize)
+//                        .transform(new SquareTransformation())
+                        .into(ivFeedCenter);
+            }
+            Picasso.get()
+                .load(profilePhoto)
+                .placeholder(R.drawable.img_circle_placeholder)
+                .centerCrop()
+                .resize(avatarSize,avatarSize)
+                    .transform(new CircleTransformation())
+                .into(ivUserProfile);
+
+            tvProfileName.setText(feedItem.getAccountFullName());
+            postTextView.setText(feedItem.getPostContent());
             btnLike.setImageResource(true ? R.drawable.ic_heart_red : R.drawable.ic_heart_outline_grey);
             tsLikesCounter.setCurrentText(vImageRoot.getResources().getQuantityString(
                     R.plurals.likes_count, feedItem.getLikesCounter(), feedItem.getLikesCounter()
@@ -209,11 +281,13 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public static class LoadingCellFeedViewHolder extends CellFeedViewHolder {
 
+        private final Context context;
         LoadingFeedItemView loadingFeedItemView;
 
-        public LoadingCellFeedViewHolder(LoadingFeedItemView view) {
-            super(view);
+        public LoadingCellFeedViewHolder(LoadingFeedItemView view, Context context) {
+            super(view, context);
             this.loadingFeedItemView = view;
+            this.context = context;
         }
 
         @Override

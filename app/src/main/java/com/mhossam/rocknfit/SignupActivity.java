@@ -99,7 +99,7 @@ public class SignupActivity extends BaseAppCompatActivity {
     }
 
     @Override
-    protected HashMap<String, String> prepareRequestMap() {
+    public HashMap<String, String> prepareRequestMap() {
         HashMap<String, String> result = super.prepareRequestMap();
         result.put("Action", "AddAccount");
         String[] nameArray = fullName.getText().toString().split(" ");

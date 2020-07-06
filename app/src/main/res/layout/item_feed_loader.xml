@@ -59,7 +59,7 @@
 
         </com.mhossam.rocknfit.view.SquaredFrameLayout>
 
-        <ImageView
+        <TextView
             android:id="@+id/ivFeedBottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />

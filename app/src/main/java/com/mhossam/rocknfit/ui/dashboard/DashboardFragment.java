@@ -1,28 +1,35 @@
-package com.mhossam.rocknfit;
+package com.mhossam.rocknfit.ui.dashboard;
 
-import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
-import android.view.Menu;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.animation.OvershootInterpolator;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.material.snackbar.Snackbar;
+import com.mhossam.rocknfit.API.APIClient;
+import com.mhossam.rocknfit.API.APIInterface;
+import com.mhossam.rocknfit.NewsFeedActivity;
+import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.Utils;
 import com.mhossam.rocknfit.adapter.FeedAdapter;
 import com.mhossam.rocknfit.adapter.FeedItemAnimator;
 import com.mhossam.rocknfit.model.Post;
-import com.mhossam.rocknfit.view.BaseDrawerActivity;
 import com.mhossam.rocknfit.view.FeedContextMenu;
 import com.mhossam.rocknfit.view.FeedContextMenuManager;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,13 +38,13 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFeedItemClickListener,
+public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedItemClickListener,
         FeedContextMenu.OnFeedContextMenuItemClickListener {
+
     public static final String ACTION_SHOW_LOADING_ITEM = "action_show_loading_item";
 
     private static final int ANIM_DURATION_TOOLBAR = 300;
@@ -49,23 +56,45 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
 
     @BindView(R.id.rvFeed)
     RecyclerView rvFeed;
-    @BindView(R.id.btnCreate)
-    FloatingActionButton fabCreate;
+
     @BindView(R.id.content)
     CoordinatorLayout clContent;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_feed);
-        ButterKnife.bind(this);
+    @BindView(R.id.ivProfileImage)
+    ImageView ivProfileImage;
 
+    private DashboardViewModel dashboardViewModel;
+    private APIInterface apiInterface;
 
-
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
+        dashboardViewModel =
+                ViewModelProviders.of(this).get(DashboardViewModel.class);
+        View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
+        ButterKnife.bind(this , root);
+        apiInterface = APIClient.getClient().create(APIInterface.class);
+        dashboardViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(@Nullable String s) {
+//                textView.setText(s);
+            }
+        });
+        Picasso.get()
+                .load("https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcScj1w0UCdIr4kUblujW7B7IdaZoRmdHyZP5A&usqp=CAU")
+                .placeholder(R.drawable.img_circle_placeholder)
+                .fit()
+//                        .centerCrop()
+//                        .resize(avatarSize,avatarSize)
+//                        .transform(new SquareTransformation())
+                .into(ivProfileImage);
+        ((NewsFeedActivity)getActivity()).setFragment(this);
+        setupFeed();
+        return root;
     }
 
+
     private void setupFeed() {
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this) {
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(((NewsFeedActivity)getActivity())) {
             @Override
             protected int getExtraLayoutSpace(RecyclerView.State state) {
                 return 300;
@@ -73,7 +102,7 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
         };
         rvFeed.setLayoutManager(linearLayoutManager);
 
-        feedAdapter = new FeedAdapter(this);
+        feedAdapter = new FeedAdapter(((NewsFeedActivity)getActivity()));
         feedAdapter.setOnFeedItemClickListener(this);
         rvFeed.setAdapter(feedAdapter);
         rvFeed.setOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -83,29 +112,27 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
             }
         });
         rvFeed.setItemAnimator(new FeedItemAnimator());
+        startLoading();
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
+    public void onNewIntent(Intent intent) {
         if (ACTION_SHOW_LOADING_ITEM.equals(intent.getAction())) {
             showFeedLoadingItemDelayed();
         }
     }
 
-    private void showFeedLoadingItemDelayed() {
+
+    public void showFeedLoadingItemDelayed() {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                rvFeed.smoothScrollToPosition(0);
-                feedAdapter.showLoadingView();
+//                rvFeed.smoothScrollToPosition(0);
+//                feedAdapter.showLoadingView();
             }
         }, 500);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
+    public boolean startLoading() {
         pendingIntroAnimation = false;
         Map<String, String> parametersMap = prepareRequestMap();
         Call<Map<String, Post>> call = apiInterface.getPosts(parametersMap);
@@ -118,9 +145,9 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
 
                 Map<String, Post> resource = response.body();
                 if (resource != null) {
-                    setupFeed();
+//                    setupFeed();
                     startIntroAnimation(resource);
-//                        feedAdapter.updateItems(true,new ArrayList<Post>());
+//                    feedAdapter.updateItems(true,new ArrayList<Post>());
 
                 }
             }
@@ -134,41 +161,39 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
     }
 
     private void startIntroAnimation(Map<String, Post> resource) {
-        fabCreate.setTranslationY(2 * getResources().getDimensionPixelOffset(R.dimen.btn_fab_size));
-
         int actionbarSize = Utils.dpToPx(56);
-        getToolbar().setTranslationY(-actionbarSize);
-        getIvLogo().setTranslationY(-actionbarSize);
-        getInboxMenuItem().getActionView().setTranslationY(-actionbarSize);
+//        ((NewsFeedActivity)getActivity()).getToolbar().setTranslationY(-actionbarSize);
+//        ((NewsFeedActivity)getActivity()).getIvLogo().setTranslationY(-actionbarSize);
+//        ((NewsFeedActivity)getActivity()).getInboxMenuItem().getActionView().setTranslationY(-actionbarSize);
 
-        getToolbar().animate()
-                .translationY(0)
-                .setDuration(ANIM_DURATION_TOOLBAR)
-                .setStartDelay(300);
-        getIvLogo().animate()
-                .translationY(0)
-                .setDuration(ANIM_DURATION_TOOLBAR)
-                .setStartDelay(400);
-        getInboxMenuItem().getActionView().animate()
-                .translationY(0)
-                .setDuration(ANIM_DURATION_TOOLBAR)
-                .setStartDelay(500)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
+//        ((NewsFeedActivity)getActivity()).getToolbar().animate()
+//                .translationY(0)
+//                .setDuration(ANIM_DURATION_TOOLBAR)
+//                .setStartDelay(300);
+//        ((NewsFeedActivity)getActivity()).getIvLogo().animate()
+//                .translationY(0)
+//                .setDuration(ANIM_DURATION_TOOLBAR)
+//                .setStartDelay(400);
+//        ((NewsFeedActivity)getActivity()).getInboxMenuItem().getActionView().animate()
+//                .translationY(0)
+//                .setDuration(ANIM_DURATION_TOOLBAR)
+//                .setStartDelay(500)
+//                .setListener(new AnimatorListenerAdapter() {
+//                    @Override
+//                    public void onAnimationEnd(Animator animation) {
                         startContentAnimation(new ArrayList<Post>(resource.values()));
-                    }
-                })
-                .start();
+//                    }
+//                })
+//                .start();
     }
 
     private void startContentAnimation(List<Post> values) {
-        fabCreate.animate()
-                .translationY(0)
-                .setInterpolator(new OvershootInterpolator(1.f))
-                .setStartDelay(300)
-                .setDuration(ANIM_DURATION_FAB)
-                .start();
+//        fabCreate.animate()
+//                .translationY(0)
+//                .setInterpolator(new OvershootInterpolator(1.f))
+//                .setStartDelay(300)
+//                .setDuration(ANIM_DURATION_FAB)
+//                .start();
         feedAdapter.updateItems(true, values);
     }
 
@@ -193,7 +218,7 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
         v.getLocationOnScreen(startingLocation);
         startingLocation[0] += v.getWidth() / 2;
 //        UserProfileActivity.startUserProfileFromLocation(startingLocation, this);
-        overridePendingTransition(0, 0);
+        ((NewsFeedActivity)getActivity()).overridePendingTransition(0, 0);
     }
 
     @Override
@@ -216,22 +241,21 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
         FeedContextMenuManager.getInstance().hideContextMenu();
     }
 
-    @OnClick(R.id.btnCreate)
-    public void onTakePhotoClick() {
-        int[] startingLocation = new int[2];
-        fabCreate.getLocationOnScreen(startingLocation);
-        startingLocation[0] += fabCreate.getWidth() / 2;
-//        TakePhotoActivity.startCameraFromLocation(startingLocation, this);
-        overridePendingTransition(0, 0);
-    }
+//    @OnClick(R.id.btnCreate)
+//    public void onTakePhotoClick() {
+//        int[] startingLocation = new int[2];
+////        fabCreate.getLocationOnScreen(startingLocation);
+////        startingLocation[0] += fabCreate.getWidth() / 2;
+////        TakePhotoActivity.startCameraFromLocation(startingLocation, this);
+//        ((NewsFeedActivity)getActivity()).overridePendingTransition(0, 0);
+//    }
 
     public void showLikedSnackbar() {
         Snackbar.make(clContent, "Liked!", Snackbar.LENGTH_SHORT).show();
     }
 
-    @Override
-    public HashMap<String, String> prepareRequestMap() {
-        HashMap<String, String> result = super.prepareRequestMap();
+    protected HashMap<String, String> prepareRequestMap() {
+        HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
         result.put("Action", "GetPosts");
         result.put("AccountID", "0");
         result.put("MyAccount", "95");
