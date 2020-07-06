@@ -1,13 +1,19 @@
 package com.mhossam.rocknfit.ui.dashboard;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -65,6 +71,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 
     private DashboardViewModel dashboardViewModel;
     private APIInterface apiInterface;
+    private PopupWindow changeSortPopUp;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -87,8 +94,17 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 //                        .resize(avatarSize,avatarSize)
 //                        .transform(new SquareTransformation())
                 .into(ivProfileImage);
+
+        ivProfileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showSortPopup((NewsFeedActivity)getActivity());
+            }
+        });
+
         ((NewsFeedActivity)getActivity()).setFragment(this);
         setupFeed();
+
         return root;
     }
 
@@ -263,5 +279,42 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         result.put("Size", "10");
         result.put("Type", "0");
         return result;
+    }
+
+    private void showSortPopup(final Activity context)
+    {
+        // Inflate the popup_layout.xml
+//        LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.llSortChangePopup);
+        LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = layoutInflater.inflate(R.layout.sort_popup_layout, null);
+
+        // Creating the PopupWindow
+        changeSortPopUp = new PopupWindow(context);
+        changeSortPopUp.setContentView(layout);
+        changeSortPopUp.setWidth(LinearLayout.LayoutParams.WRAP_CONTENT);
+        changeSortPopUp.setHeight(LinearLayout.LayoutParams.WRAP_CONTENT);
+        changeSortPopUp.setFocusable(true);
+
+        // Some offset to align the popup a bit to the left, and a bit down, relative to button's position.
+        int OFFSET_X = -20;
+        int OFFSET_Y = 95;
+
+        // Clear the default translucent background
+//        changeSortPopUp.setBackgroundDrawable(new BitmapDrawable());
+
+        // Displaying the popup at the specified location, + offsets.
+        changeSortPopUp.showAtLocation(layout, Gravity.CENTER, 0, 0);
+
+
+        // Getting a reference to Close button, and close the popup when clicked.
+        Button close = (Button) layout.findViewById(R.id.close);
+        close.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                changeSortPopUp.dismiss();
+            }
+        });
+
     }
 }
