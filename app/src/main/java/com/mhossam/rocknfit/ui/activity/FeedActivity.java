@@ -1,4 +1,4 @@
-package com.mhossam.rocknfit;
+package com.mhossam.rocknfit.ui.activity;
 
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -16,6 +16,7 @@ import android.view.animation.OvershootInterpolator;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.Utils;
 import com.mhossam.rocknfit.adapter.FeedAdapter;
 import com.mhossam.rocknfit.adapter.FeedItemAnimator;
@@ -66,10 +67,10 @@ public class FeedActivity extends BaseDrawerActivity implements FeedAdapter.OnFe
 
     private void setupFeed() {
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this) {
-            @Override
-            protected int getExtraLayoutSpace(RecyclerView.State state) {
-                return 300;
-            }
+//            @Override
+//            protected int getExtraLayoutSpace(RecyclerView.State state) {
+//                return 300;
+//            }
         };
         rvFeed.setLayoutManager(linearLayoutManager);
 

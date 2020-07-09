@@ -12,11 +12,12 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.mhossam.rocknfit.FeedActivity;
+import com.mhossam.rocknfit.ui.activity.FeedActivity;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.CircleTransformation;
 import com.mhossam.rocknfit.model.Post;
@@ -115,13 +116,14 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder viewHolder, int position) {
+
+
         ((CellFeedViewHolder) viewHolder).bindView(feedItems.get(position));
 
         if (getItemViewType(position) == VIEW_TYPE_LOADER) {
             bindLoadingFeedItem((LoadingCellFeedViewHolder) viewHolder);
         }
     }
-
     private void bindLoadingFeedItem(final LoadingCellFeedViewHolder holder) {
         holder.loadingFeedItemView.setOnLoadingFinishedListener(new LoadingFeedItemView.OnLoadingFinishedListener() {
             @Override
@@ -148,7 +150,14 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     public void updateItems(boolean animated , List<Post> updatedFeedItems) {
-        feedItems.clear();
+        updateItems(animated,updatedFeedItems,false);
+    }
+
+
+    public void updateItems(boolean animated , List<Post> updatedFeedItems, boolean keepOldItems) {
+        if(!keepOldItems){
+            feedItems.clear();
+        }
         feedItems.addAll(updatedFeedItems);
         if (animated) {
             notifyItemRangeInserted(0, feedItems.size());
@@ -165,6 +174,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         showLoadingView = true;
         notifyItemChanged(0);
     }
+
 
     public static class CellFeedViewHolder extends RecyclerView.ViewHolder {
         private final Context context;

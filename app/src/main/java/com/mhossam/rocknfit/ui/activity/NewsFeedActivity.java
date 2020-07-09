@@ -1,4 +1,4 @@
-package com.mhossam.rocknfit;
+package com.mhossam.rocknfit.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +12,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.ui.dashboard.DashboardFragment;
 import com.mhossam.rocknfit.view.BaseDrawerActivity;
 

@@ -3,6 +3,8 @@ package com.mhossam.rocknfit.ui.dashboard;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -14,24 +16,29 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
-import com.mhossam.rocknfit.NewsFeedActivity;
+import com.mhossam.rocknfit.Utils.LinearLayoutManagerWrapper;
+import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
 import com.mhossam.rocknfit.R;
-import com.mhossam.rocknfit.Utils.Utils;
 import com.mhossam.rocknfit.adapter.FeedAdapter;
 import com.mhossam.rocknfit.adapter.FeedItemAnimator;
+import com.mhossam.rocknfit.adapter.RecommendedUsersAdapter;
+import com.mhossam.rocknfit.model.AccountInfo;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.view.FeedContextMenu;
 import com.mhossam.rocknfit.view.FeedContextMenuManager;
@@ -63,6 +70,12 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
     @BindView(R.id.rvFeed)
     RecyclerView rvFeed;
 
+//    @BindView(R.id.srLayout)
+//    SwipeRefreshLayout swipeRefreshLayout;
+
+    @BindView(R.id.rvRecommendedUsers)
+    RecyclerView rvRecommendedUsers;
+
     @BindView(R.id.content)
     CoordinatorLayout clContent;
 
@@ -72,13 +85,18 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
     private DashboardViewModel dashboardViewModel;
     private APIInterface apiInterface;
     private PopupWindow changeSortPopUp;
+    private RecommendedUsersAdapter recommendedUsersAdapter;
+    private int currentPage = 0;
+    private boolean loading = false;
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         dashboardViewModel =
                 ViewModelProviders.of(this).get(DashboardViewModel.class);
         View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
         ButterKnife.bind(this , root);
+//        swipeRefreshLayout.setEnabled(false);
         apiInterface = APIClient.getClient().create(APIInterface.class);
         dashboardViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
@@ -103,32 +121,109 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         });
 
         ((NewsFeedActivity)getActivity()).setFragment(this);
+        setupFollowSuggesstions();
         setupFeed();
 
         return root;
     }
 
+    private void setupFollowSuggesstions() {
 
+        rvRecommendedUsers.setLayoutManager(new LinearLayoutManagerWrapper((NewsFeedActivity)getActivity(), LinearLayoutManager.HORIZONTAL, false));
+        recommendedUsersAdapter = new RecommendedUsersAdapter((NewsFeedActivity)getActivity());
+        rvRecommendedUsers.setAdapter(recommendedUsersAdapter);
+
+        startLoadingRecommendedUser();
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void setupFeed() {
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(((NewsFeedActivity)getActivity())) {
+        LinearLayoutManagerWrapper linearLayoutManager = new LinearLayoutManagerWrapper(((NewsFeedActivity)getActivity())) {
             @Override
             protected int getExtraLayoutSpace(RecyclerView.State state) {
                 return 300;
             }
         };
         rvFeed.setLayoutManager(linearLayoutManager);
-
         feedAdapter = new FeedAdapter(((NewsFeedActivity)getActivity()));
         feedAdapter.setOnFeedItemClickListener(this);
         rvFeed.setAdapter(feedAdapter);
+
         rvFeed.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+
+
+                if(dy > 0) //check for scroll down
+                {
+                    int visibleItemCount = linearLayoutManager.getChildCount();
+                    int totalItemCount = linearLayoutManager.getItemCount();
+                    int pastVisiblesItems = linearLayoutManager.findFirstVisibleItemPosition();
+
+                    if (!loading)
+                    {
+                        if ( (visibleItemCount + pastVisiblesItems) >= totalItemCount)
+                        {
+                            startLoading(false);
+                        }
+                    }
+                }
                 FeedContextMenuManager.getInstance().onScrolled(recyclerView, dx, dy);
             }
+//            @Override
+//            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+//                super.onScrollStateChanged(recyclerView, newState);
+//
+//                if (!recyclerView.canScrollVertically(1)) {
+////                    Toast.makeText(YourActivity.this, "Last", Toast.LENGTH_LONG).show();
+//                    startLoading(true);
+//                }
+//            }
         });
         rvFeed.setItemAnimator(new FeedItemAnimator());
-        startLoading();
+        startLoading(true);
+    }
+
+    private boolean startLoadingRecommendedUser() {
+        Map<String, String> parametersMap = prepareRequestMap();
+        Call<Map<String, AccountInfo>> call = apiInterface.getFollowSuggestions(parametersMap);
+
+        call.enqueue(new Callback<Map<String, AccountInfo>>() {
+            @Override
+            public void onResponse(Call<Map<String, AccountInfo>> call, Response<Map<String, AccountInfo>> response) {
+
+                Log.d("TAG", response.code() + "");
+
+                Map<String, AccountInfo> resource = response.body();
+                if (resource != null) {
+//                    setupFeed();
+                    fillUserSuggestions(resource);
+//                    feedAdapter.updateItems(true,new ArrayList<Post>());
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Map<String, AccountInfo>> call, Throwable t) {
+                call.cancel();
+            }
+        });
+        return true;
+    }
+
+    private void fillUserSuggestions(Map<String, AccountInfo> resource) {
+        List<AccountInfo> result = new ArrayList(resource.values());
+        recommendedUsersAdapter.updateItems(true,result);
+        recommendedUsersAdapter.notifyDataSetChanged();
+
+//        rvFeed.setOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+//                FeedContextMenuManager.getInstance().onScrolled(recyclerView, dx, dy);
+//            }
+//        });
+        rvRecommendedUsers.setItemAnimator(new FeedItemAnimator());
     }
 
     public void onNewIntent(Intent intent) {
@@ -148,9 +243,10 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         }, 500);
     }
 
-    public boolean startLoading() {
+    public boolean startLoading(boolean animate) {
+        loading = true;
         pendingIntroAnimation = false;
-        Map<String, String> parametersMap = prepareRequestMap();
+        Map<String, String> parametersMap = prepareRequestMap(currentPage);
         Call<Map<String, Post>> call = apiInterface.getPosts(parametersMap);
 
         call.enqueue(new Callback<Map<String, Post>>() {
@@ -162,7 +258,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
                 Map<String, Post> resource = response.body();
                 if (resource != null) {
 //                    setupFeed();
-                    startIntroAnimation(resource);
+                    startIntroAnimation(resource,animate);
 //                    feedAdapter.updateItems(true,new ArrayList<Post>());
 
                 }
@@ -176,8 +272,8 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         return true;
     }
 
-    private void startIntroAnimation(Map<String, Post> resource) {
-        int actionbarSize = Utils.dpToPx(56);
+    private void startIntroAnimation(Map<String, Post> resource, boolean animate) {
+//        int actionbarSize = Utils.dpToPx(56);
 //        ((NewsFeedActivity)getActivity()).getToolbar().setTranslationY(-actionbarSize);
 //        ((NewsFeedActivity)getActivity()).getIvLogo().setTranslationY(-actionbarSize);
 //        ((NewsFeedActivity)getActivity()).getInboxMenuItem().getActionView().setTranslationY(-actionbarSize);
@@ -197,20 +293,26 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 //                .setListener(new AnimatorListenerAdapter() {
 //                    @Override
 //                    public void onAnimationEnd(Animator animation) {
-                        startContentAnimation(new ArrayList<Post>(resource.values()));
+                        startContentAnimation(new ArrayList<Post>(resource.values()),animate);
 //                    }
 //                })
 //                .start();
     }
 
-    private void startContentAnimation(List<Post> values) {
+    private void startContentAnimation(List<Post> values, boolean animate) {
 //        fabCreate.animate()
 //                .translationY(0)
 //                .setInterpolator(new OvershootInterpolator(1.f))
 //                .setStartDelay(300)
 //                .setDuration(ANIM_DURATION_FAB)
 //                .start();
-        feedAdapter.updateItems(true, values);
+        if(currentPage==0) {
+            feedAdapter.updateItems(animate, values);
+        }else{
+            feedAdapter.updateItems(animate, values, true);
+        }
+        currentPage++;
+        loading = false;
     }
 
     @Override
@@ -270,6 +372,17 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         Snackbar.make(clContent, "Liked!", Snackbar.LENGTH_SHORT).show();
     }
 
+    protected HashMap<String, String> prepareRequestMap(int page) {
+        HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
+        result.put("Action", "GetPosts");
+        result.put("AccountID", "0");
+        result.put("MyAccount", "95");
+        result.put("Index", page+"");
+        result.put("Size", "10");
+        result.put("Type", "0");
+        return result;
+    }
+
     protected HashMap<String, String> prepareRequestMap() {
         HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
         result.put("Action", "GetPosts");
@@ -278,6 +391,19 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         result.put("Index", "0");
         result.put("Size", "10");
         result.put("Type", "0");
+        return result;
+    }
+
+    protected HashMap<String, String> prepareUserSuggesstionsRequestMap() {
+        HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
+//        Action:FollowSuggestions
+//        ApiUser:Test
+//        ApiPass:Test
+//        Limit:100
+//        AccountID:95
+        result.put("Action", "FollowSuggestions");
+        result.put("AccountID", "95");
+        result.put("Limit", "5");
         return result;
     }
 
@@ -291,8 +417,8 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         // Creating the PopupWindow
         changeSortPopUp = new PopupWindow(context);
         changeSortPopUp.setContentView(layout);
-        changeSortPopUp.setWidth(LinearLayout.LayoutParams.WRAP_CONTENT);
-        changeSortPopUp.setHeight(LinearLayout.LayoutParams.WRAP_CONTENT);
+        changeSortPopUp.setWidth(LinearLayout.LayoutParams.MATCH_PARENT);
+        changeSortPopUp.setHeight(LinearLayout.LayoutParams.MATCH_PARENT);
         changeSortPopUp.setFocusable(true);
 
         // Some offset to align the popup a bit to the left, and a bit down, relative to button's position.
@@ -300,7 +426,8 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         int OFFSET_Y = 95;
 
         // Clear the default translucent background
-//        changeSortPopUp.setBackgroundDrawable(new BitmapDrawable());
+        changeSortPopUp.setBackgroundDrawable(new BitmapDrawable());
+//        changeSortPopUp.setBackgroundDrawable(R.drawable.rounded_edit_text);
 
         // Displaying the popup at the specified location, + offsets.
         changeSortPopUp.showAtLocation(layout, Gravity.CENTER, 0, 0);

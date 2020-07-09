@@ -1,4 +1,4 @@
-package com.mhossam.rocknfit;
+package com.mhossam.rocknfit.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
 
 import butterknife.BindView;

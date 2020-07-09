@@ -1,4 +1,4 @@
-package com.mhossam.rocknfit;
+package com.mhossam.rocknfit.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,9 +10,9 @@ import android.widget.Toast;
 
 import androidx.room.Room;
 
+import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
 import com.mhossam.rocknfit.database.AppDatabase;
-import com.mhossam.rocknfit.model.AccountInfo;
 import com.mhossam.rocknfit.model.LoggedInUser;
 
 import java.util.HashMap;

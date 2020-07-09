@@ -1,4 +1,4 @@
-package com.mhossam.rocknfit;
+package com.mhossam.rocknfit.ui.activity;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
 
 import java.util.Calendar;
