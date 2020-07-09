@@ -4,6 +4,7 @@ import android.content.Context;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,19 +18,28 @@ import android.widget.Toast;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.mhossam.rocknfit.API.APIClient;
+import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.ui.activity.FeedActivity;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.CircleTransformation;
 import com.mhossam.rocknfit.model.Post;
+import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
+import com.mhossam.rocknfit.ui.activity.SignupActivity;
 import com.mhossam.rocknfit.view.LoadingFeedItemView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindDimen;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Created by froger_mcs on 05.11.14.
@@ -42,6 +52,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public static final int VIEW_TYPE_LOADER = 2;
 
     private final List<Post> feedItems = new ArrayList<>();
+    private final APIInterface apiInterface;
 
     private Context context;
     private OnFeedItemClickListener onFeedItemClickListener;
@@ -50,6 +61,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public FeedAdapter(Context context) {
         this.context = context;
+        apiInterface = APIClient.getClient().create(APIInterface.class);
+
     }
 
     @Override
@@ -84,25 +97,53 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 onFeedItemClickListener.onMoreClick(v, cellFeedViewHolder.getAdapterPosition());
             }
         });
-        cellFeedViewHolder.ivFeedCenter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                int adapterPosition = cellFeedViewHolder.getAdapterPosition();
-//                feedItems.get(adapterPosition).likesCount++;
-                notifyItemChanged(adapterPosition, ACTION_LIKE_IMAGE_CLICKED);
-                if (context instanceof FeedActivity) {
-                    ((FeedActivity) context).showLikedSnackbar();
-                }
-            }
-        });
+//        cellFeedViewHolder.ivFeedCenter.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                int adapterPosition = cellFeedViewHolder.getAdapterPosition();
+////                feedItems.get(adapterPosition).likesCount++;
+//                notifyItemChanged(adapterPosition, ACTION_LIKE_IMAGE_CLICKED);
+//                if (context instanceof FeedActivity) {
+//                    ((FeedActivity) context).showLikedSnackbar();
+//                }
+//            }
+//        });
         cellFeedViewHolder.btnLike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int adapterPosition = cellFeedViewHolder.getAdapterPosition();
-//                feedItems.get(adapterPosition).getLikesCounter()++;
+                Post currentFeedItem = feedItems.get(adapterPosition);
+                
                 notifyItemChanged(adapterPosition, ACTION_LIKE_BUTTON_CLICKED);
-                if (context instanceof FeedActivity) {
-                    ((FeedActivity) context).showLikedSnackbar();
+                if (context instanceof NewsFeedActivity) {
+
+                    Map<String, String> parametersMap = prepareRequestMap();
+                    parametersMap.put("Action","LikePost");
+                    parametersMap.put("PostID",currentFeedItem.getPostID());
+                    parametersMap.put("AccountID","95");
+                    Call<String> call = apiInterface.likePost(parametersMap);
+                    call.enqueue(new Callback<String>() {
+                        @Override
+                        public void onResponse(Call<String> call, Response<String> response) {
+                            Log.d("TAG", response.code() + "");
+                            String resource = response.body();
+                            if(resource==null || resource.contains("null")) {
+                                Toast.makeText(context, "Liked", Toast.LENGTH_SHORT).show();
+                                currentFeedItem.setLikesCounter(currentFeedItem.getLikesCounter()+1);
+                                currentFeedItem.setLikeID("liked");
+                                notifyItemChanged(adapterPosition);
+                            }else{
+                                Toast.makeText(context, resource, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<String> call, Throwable t) {
+                            Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
+                            call.cancel();
+                        }
+                    });
+//                    ((FeedActivity) context).showLikedSnackbar();
                 }
             }
         });
@@ -112,6 +153,12 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 onFeedItemClickListener.onProfileClick(view);
             }
         });
+    }
+    public HashMap<String, String> prepareRequestMap() {
+        HashMap<String, String> result = new HashMap<>();
+        result.put("ApiUser", "Test");
+        result.put("ApiPass", "Test");
+        return result;
     }
 
     @Override
@@ -278,7 +325,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
             tvProfileName.setText(feedItem.getAccountFullName());
             postTextView.setText(feedItem.getPostContent());
-            btnLike.setImageResource(true ? R.drawable.ic_heart_red : R.drawable.ic_heart_outline_grey);
+            btnLike.setImageResource(!(feedItem.getLikeID()==null ||
+                    feedItem.getLikeID().isEmpty()) ? R.drawable.ic_heart_red : R.drawable.ic_heart_outline_grey);
             tsLikesCounter.setCurrentText(vImageRoot.getResources().getQuantityString(
                     R.plurals.likes_count, feedItem.getLikesCounter(), feedItem.getLikesCounter()
             ));

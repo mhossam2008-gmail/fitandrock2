@@ -33,6 +33,29 @@ public interface APIInterface {
     @POST("MobAPIs/MobAPIs.php")
     Call<Map<String, Post>> getPosts(@FieldMap Map<String,String> params);
 
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<String> likePost(@FieldMap Map<String,String> params);
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<String> unlikePost(@FieldMap Map<String,String> params);
+
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<String> sharePost(@FieldMap Map<String,String> params);
+
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<String> deletePost(@FieldMap Map<String,String> params);
+
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<Map<String, String>> updatePost(@FieldMap Map<String,String> params);
+
 
 //    @GET("/api/users?")
 //    Call<UserList> doGetUserList(@Query("page") String page);

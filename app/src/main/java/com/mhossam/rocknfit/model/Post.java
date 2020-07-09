@@ -61,7 +61,7 @@ public class Post implements Serializable, Parcelable
     private String accountFullName;
     @SerializedName("LikeID")
     @Expose
-    private Object likeID;
+    private String likeID;
     @SerializedName("LikeDate")
     @Expose
     private Object likeDate;
@@ -120,7 +120,7 @@ public class Post implements Serializable, Parcelable
         this.accountContainer = ((String) in.readValue((String.class.getClassLoader())));
         this.accountURL = ((String) in.readValue((String.class.getClassLoader())));
         this.accountFullName = ((String) in.readValue((String.class.getClassLoader())));
-        this.likeID = ((Object) in.readValue((Object.class.getClassLoader())));
+        this.likeID = ((String) in.readValue((Object.class.getClassLoader())));
         this.likeDate = ((Object) in.readValue((Object.class.getClassLoader())));
         this.fullImagePath = ((String) in.readValue((String.class.getClassLoader())));
         this.profilePicturePath = ((String) in.readValue((String.class.getClassLoader())));
@@ -329,15 +329,15 @@ public class Post implements Serializable, Parcelable
         return this;
     }
 
-    public Object getLikeID() {
+    public String getLikeID() {
         return likeID;
     }
 
-    public void setLikeID(Object likeID) {
+    public void setLikeID(String likeID) {
         this.likeID = likeID;
     }
 
-    public Post withLikeID(Object likeID) {
+    public Post withLikeID(String likeID) {
         this.likeID = likeID;
         return this;
     }

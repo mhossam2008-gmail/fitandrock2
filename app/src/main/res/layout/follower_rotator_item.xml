@@ -25,19 +25,19 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/view2"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:layout_centerHorizontal="true"
             android:layout_gravity="bottom|right"
-            android:elevation="12dp"
+            android:elevation="0dp"
             android:foregroundGravity="bottom|right"
             app:cardBackgroundColor="#fcb645"
-            app:cardCornerRadius="40dp">
+            app:cardCornerRadius="30dp">
 
             <ImageView
                 android:id="@+id/imageView1"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:layout_gravity="center"
                 android:foregroundGravity="center"
                 android:scaleType="fitXY"

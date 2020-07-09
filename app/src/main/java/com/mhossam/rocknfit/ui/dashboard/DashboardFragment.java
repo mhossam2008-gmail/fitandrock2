@@ -153,8 +153,6 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         rvFeed.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-
-
                 if(dy > 0) //check for scroll down
                 {
                     int visibleItemCount = linearLayoutManager.getChildCount();
@@ -171,15 +169,6 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
                 }
                 FeedContextMenuManager.getInstance().onScrolled(recyclerView, dx, dy);
             }
-//            @Override
-//            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-//                super.onScrollStateChanged(recyclerView, newState);
-//
-//                if (!recyclerView.canScrollVertically(1)) {
-////                    Toast.makeText(YourActivity.this, "Last", Toast.LENGTH_LONG).show();
-//                    startLoading(true);
-//                }
-//            }
         });
         rvFeed.setItemAnimator(new FeedItemAnimator());
         startLoading(true);
