@@ -11,11 +11,14 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.LinearLayoutCompat;
+import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.mhossam.rocknfit.API.APIClient;
@@ -27,6 +30,8 @@ import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
 import com.mhossam.rocknfit.ui.activity.SignupActivity;
 import com.mhossam.rocknfit.view.LoadingFeedItemView;
+import com.mhossam.rocknfit.view.SquaredFrameLayout;
+import com.mhossam.rocknfit.view.SquaredImageView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -113,7 +118,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             public void onClick(View v) {
                 int adapterPosition = cellFeedViewHolder.getAdapterPosition();
                 Post currentFeedItem = feedItems.get(adapterPosition);
-                
+
                 notifyItemChanged(adapterPosition, ACTION_LIKE_BUTTON_CLICKED);
                 if (context instanceof NewsFeedActivity) {
 
@@ -147,6 +152,48 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 }
             }
         });
+
+        cellFeedViewHolder.btnShare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int adapterPosition = cellFeedViewHolder.getAdapterPosition();
+                Post currentFeedItem = feedItems.get(adapterPosition);
+
+                if (context instanceof NewsFeedActivity) {
+
+                    Map<String, String> parametersMap = prepareRequestMap();
+                    parametersMap.put("Action","SharePost");
+                    parametersMap.put("AccountID","95");
+                    parametersMap.put("PostID",currentFeedItem.getPostID());
+                    parametersMap.put("Text","Sample Text");
+                    Call<String> call = apiInterface.likePost(parametersMap);
+                    call.enqueue(new Callback<String>() {
+                        @Override
+                        public void onResponse(Call<String> call, Response<String> response) {
+                            Log.d("TAG", response.code() + "");
+                            String resource = response.body();
+                            if(resource==null || resource.contains("null")) {
+                                Toast.makeText(context, "Liked", Toast.LENGTH_SHORT).show();
+                                currentFeedItem.setLikesCounter(currentFeedItem.getLikesCounter()+1);
+                                currentFeedItem.setLikeID("liked");
+                                notifyItemChanged(adapterPosition);
+                            }else{
+                                Toast.makeText(context, resource, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<String> call, Throwable t) {
+                            Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
+                            call.cancel();
+                        }
+                    });
+//                    ((FeedActivity) context).showLikedSnackbar();
+                }
+            }
+        });
+
+
         cellFeedViewHolder.ivUserProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -222,11 +269,16 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         notifyItemChanged(0);
     }
 
+    public Post getPostAtPosition(int position){
+        return feedItems.get(position);
+    }
 
     public static class CellFeedViewHolder extends RecyclerView.ViewHolder {
         private final Context context;
         @BindView(R.id.ivFeedCenter)
         ImageView ivFeedCenter;
+        @BindView(R.id.ivFeedCenterContainer)
+        CardView ivFeedCenterContainer;
         @BindView(R.id.ivFeedBottom)
         TextView ivFeedBottom;
         @BindView(R.id.btnComments)
@@ -237,10 +289,11 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         ImageButton btnMore;
         @BindView(R.id.vBgLike)
         View vBgLike;
+        @BindView(R.id.btnShare)
+        ImageButton btnShare;
+
         @BindView(R.id.ivLike)
         ImageView ivLike;
-        @BindView(R.id.tsLikesCounter)
-        TextSwitcher tsLikesCounter;
         @BindView(R.id.ivUserProfile)
         ImageView ivUserProfile;
         @BindView(R.id.vImageRoot)
@@ -251,6 +304,28 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         TextView tvProfileName;
         @BindView(R.id.playIcon)
         ImageView playIcon;
+        @BindView(R.id.tvCommentCount)
+        TextView commentsCount;
+        @BindView(R.id.tvLikeCount)
+        TextView likesCount;
+        @BindView(R.id.tvShareCount)
+        TextView shareCount;
+
+        @BindView(R.id.tvOrigProfileName)
+        TextView origProfileName;
+        @BindView(R.id.ivOrigFeedCenter)
+        ImageView origFeedCenter;
+        @BindView(R.id.origPlayIcon)
+        ImageView origPlayIcon;
+        @BindView(R.id.ivOrigUserProfile)
+        ImageView origProfilePhoto;
+        @BindView(R.id.vOrigImageRoot)
+        SquaredFrameLayout origRoot;
+        @BindView(R.id.origPostConstLayout)
+        ConstraintLayout origPostConstLayout;
+        @BindView(R.id.origPostRoot)
+        LinearLayout origPostRoot;
+
         @BindDimen(R.dimen.global_menu_avatar_size)
         int avatarSize;
 
@@ -264,57 +339,125 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         public void bindView(Post feedItem) {
             this.feedItem = feedItem;
-            int adapterPosition = getAdapterPosition();
-//            ivFeedCenter.setImageResource(adapterPosition % 2 == 0 ? R.drawable.img_feed_center_1 : R.drawable.img_feed_center_2);
-//            ivFeedBottom.setImageResource(adapterPosition % 2 == 0 ? R.drawable.img_feed_bottom_1 : R.drawable.img_feed_bottom_2);
-            String profilePhoto = "https://www.fitandrock.com"+feedItem.getProfilePicturePath();
-            playIcon.setVisibility(View.GONE);
-            if(feedItem.getPostMedia() == null || feedItem.getPostMedia().equals("")){
+            if(!feedItem.getOriginalPostID().equals("0")&&feedItem.getPostType().equalsIgnoreCase("h")){
+
                 vImageRoot.setVisibility(View.GONE);
-            }else if(feedItem.getPostMedia() instanceof String &&((String) feedItem.getPostMedia()).contains("youtube")){
-                String postPhoto = ((String) feedItem.getPostMedia()).replace("www.youtube.com/watch?v=","img.youtube.com/vi/");
-                postPhoto+="/mqdefault.jpg";
 
+                origPostRoot.setVisibility(View.VISIBLE);
+
+                String origUserProfilePhoto = "https://www.fitandrock.com/"+feedItem.getOrgPicturePath();
+                String origName = feedItem.getOrgName();
+                origProfileName.setText(origName);
                 Picasso.get()
-                        .load(postPhoto)
+                        .load(origUserProfilePhoto)
                         .placeholder(R.drawable.img_circle_placeholder)
-                        .fit()
+                        .centerCrop()
+                        .resize(avatarSize,avatarSize)
+                        .transform(new CircleTransformation())
+                        .into(origProfilePhoto);
+
+                origPlayIcon.setVisibility(View.GONE);
+                if(feedItem.getPostMedia() == null || feedItem.getPostMedia().equals("")){
+                    origRoot.setVisibility(View.GONE);
+                }else if(feedItem.getPostMedia() instanceof String &&((String) feedItem.getPostMedia()).contains("youtube")){
+                    String postPhoto = ((String) feedItem.getPostMedia()).replace("www.youtube.com/watch?v=","img.youtube.com/vi/");
+                    postPhoto+="/mqdefault.jpg";
+
+                    Picasso.get()
+                            .load(postPhoto)
+                            .placeholder(R.drawable.img_circle_placeholder)
+                            .fit()
 //                        .centerCrop()
 //                        .resize(avatarSize,avatarSize)
 //                        .transform(new SquareTransformation())
-                        .into(ivFeedCenter);
-                playIcon.setVisibility(View.VISIBLE);
-                ivFeedCenter.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.setPackage("com.google.android.youtube");
-                        context.startActivity(intent);
-                    }
-                });
-                playIcon.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.setPackage("com.google.android.youtube");
-                        context.startActivity(intent);
-                    }
-                });
-            }
-            else{
-                String postPhoto = "https://www.fitandrock.com"+feedItem.getFullImagePath();
+                            .into(origFeedCenter);
+                    origPlayIcon.setVisibility(View.VISIBLE);
+                    origFeedCenter.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.setPackage("com.google.android.youtube");
+                            context.startActivity(intent);
+                        }
+                    });
+                    origPlayIcon.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.setPackage("com.google.android.youtube");
+                            context.startActivity(intent);
+                        }
+                    });
+                }
+                else{
+                    String postPhoto = "https://www.fitandrock.com"+feedItem.getFullImagePath();
 
-                Picasso.get()
-                        .load(postPhoto)
-                        .placeholder(R.drawable.img_circle_placeholder)
-                        .fit()
+                    Picasso.get()
+                            .load(postPhoto)
+                            .placeholder(R.drawable.img_circle_placeholder)
+                            .fit()
 //                        .centerCrop()
 //                        .resize(avatarSize,avatarSize)
 //                        .transform(new SquareTransformation())
-                        .into(ivFeedCenter);
+                            .into(origFeedCenter);
+                }
+
+            }else{
+                origPostRoot.setVisibility(View.GONE);
+                vImageRoot.setVisibility(View.VISIBLE);
+                playIcon.setVisibility(View.GONE);
+                if(feedItem.getPostMedia() == null || feedItem.getPostMedia().equals("")){
+                    vImageRoot.setVisibility(View.GONE);
+                }else if(feedItem.getPostMedia() instanceof String &&((String) feedItem.getPostMedia()).contains("youtube")){
+                    String postPhoto = ((String) feedItem.getPostMedia()).replace("www.youtube.com/watch?v=","img.youtube.com/vi/");
+                    postPhoto+="/mqdefault.jpg";
+
+                    Picasso.get()
+                            .load(postPhoto)
+                            .placeholder(R.drawable.img_circle_placeholder)
+                            .fit()
+//                        .centerCrop()
+//                        .resize(avatarSize,avatarSize)
+//                        .transform(new SquareTransformation())
+                            .into(ivFeedCenter);
+                    playIcon.setVisibility(View.VISIBLE);
+                    ivFeedCenter.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.setPackage("com.google.android.youtube");
+                            context.startActivity(intent);
+                        }
+                    });
+                    playIcon.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.setPackage("com.google.android.youtube");
+                            context.startActivity(intent);
+                        }
+                    });
+                }
+                else{
+                    String postPhoto = "https://www.fitandrock.com"+feedItem.getFullImagePath();
+
+                    Picasso.get()
+                            .load(postPhoto)
+                            .placeholder(R.drawable.img_circle_placeholder)
+                            .fit()
+//                        .centerCrop()
+//                        .resize(avatarSize,avatarSize)
+//                        .transform(new SquareTransformation())
+                            .into(ivFeedCenter);
+                }
             }
+            int adapterPosition = getAdapterPosition();
+            String profilePhoto = "https://www.fitandrock.com"+feedItem.getProfilePicturePath();
+
             Picasso.get()
                 .load(profilePhoto)
                 .placeholder(R.drawable.img_circle_placeholder)
@@ -322,14 +465,16 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 .resize(avatarSize,avatarSize)
                     .transform(new CircleTransformation())
                 .into(ivUserProfile);
-
+            commentsCount.setText(feedItem.getCommentsCounter());
+            likesCount.setText(feedItem.getLikesCounter()+"");
+            shareCount.setText(feedItem.getShareCounter());
             tvProfileName.setText(feedItem.getAccountFullName());
             postTextView.setText(feedItem.getPostContent());
             btnLike.setImageResource(!(feedItem.getLikeID()==null ||
                     feedItem.getLikeID().isEmpty()) ? R.drawable.ic_heart_red : R.drawable.ic_heart_outline_grey);
-            tsLikesCounter.setCurrentText(vImageRoot.getResources().getQuantityString(
-                    R.plurals.likes_count, feedItem.getLikesCounter(), feedItem.getLikesCounter()
-            ));
+//            tsLikesCounter.setCurrentText(vImageRoot.getResources().getQuantityString(
+//                    R.plurals.likes_count, feedItem.getLikesCounter(), feedItem.getLikesCounter()
+//            ));
         }
 
         public Post getFeedItem() {

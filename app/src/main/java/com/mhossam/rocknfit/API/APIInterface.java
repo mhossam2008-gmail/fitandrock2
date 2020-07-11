@@ -3,6 +3,7 @@ package com.mhossam.rocknfit.API;
 import com.mhossam.rocknfit.model.AccountInfo;
 import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
+import com.mhossam.rocknfit.model.PostComment;
 
 import java.util.Map;
 
@@ -35,7 +36,17 @@ public interface APIInterface {
 
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")
+    Call<Map<String, PostComment>> getPostComments(@FieldMap Map<String,String> params);
+
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
     Call<String> likePost(@FieldMap Map<String,String> params);
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<String> likeComment(@FieldMap Map<String,String> params);
+
 
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")
@@ -55,6 +66,10 @@ public interface APIInterface {
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")
     Call<Map<String, String>> updatePost(@FieldMap Map<String,String> params);
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<String> addComment(@FieldMap Map<String,String> params);
 
 
 //    @GET("/api/users?")

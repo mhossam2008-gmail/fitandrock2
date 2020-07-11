@@ -13,6 +13,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Entity
 public class AccountInfo implements Serializable {
@@ -826,5 +827,4 @@ public class AccountInfo implements Serializable {
         AccountInfo rhs = ((AccountInfo) other);
         return new EqualsBuilder().append(loginFailedTrials, rhs.loginFailedTrials).append(accountLastName, rhs.accountLastName).append(friendBirthdayNotify, rhs.friendBirthdayNotify).append(twitterUrl, rhs.twitterUrl).append(accountCover, rhs.accountCover).append(accountID, rhs.accountID).append(preferredTrainerGender, rhs.preferredTrainerGender).append(districtID, rhs.districtID).append(isLocked, rhs.isLocked).append(needOnlineTrainer, rhs.needOnlineTrainer).append(accountTypeShort, rhs.accountTypeShort).append(accountURL, rhs.accountURL).append(accountType, rhs.accountType).append(accountGender, rhs.accountGender).append(creationDate, rhs.creationDate).append(genderWeTrain, rhs.genderWeTrain).append(countryID, rhs.countryID).append(accountContainer, rhs.accountContainer).append(isEnabled, rhs.isEnabled).append(countryName, rhs.countryName).append(accountToken, rhs.accountToken).append(whoCanFollow, rhs.whoCanFollow).append(accountPoints, rhs.accountPoints).append(maritalStatus, rhs.maritalStatus).append(littleDescription, rhs.littleDescription).append(ageWeTrain, rhs.ageWeTrain).append(readyForQuestions, rhs.readyForQuestions).append(lastLoginDate, rhs.lastLoginDate).append(facebookUrl, rhs.facebookUrl).append(accountDOB, rhs.accountDOB).append(contactNumber, rhs.contactNumber).append(accountFullName, rhs.accountFullName).append(profilePicturePath, rhs.profilePicturePath).append(emailNotification, rhs.emailNotification).append(accountFirstName, rhs.accountFirstName).append(districtName, rhs.districtName).append(whenToTrainStart, rhs.whenToTrainStart).append(lastLoginIP, rhs.lastLoginIP).append(governorateName, rhs.governorateName).append(governorateID, rhs.governorateID).append(activityID, rhs.activityID).append(accountEmail, rhs.accountEmail).append(hobbies, rhs.hobbies).append(whoCanViewProfile, rhs.whoCanViewProfile).append(whenToTrainEnd, rhs.whenToTrainEnd).append(whereToTrain, rhs.whereToTrain).append(accountImage, rhs.accountImage).append(lastPasswordChange, rhs.lastPasswordChange).append(accountPassword, rhs.accountPassword).isEquals();
     }
-
 }

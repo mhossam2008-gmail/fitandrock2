@@ -148,15 +148,15 @@ public class FeedItemAnimator extends DefaultItemAnimator {
     }
 
     private void updateLikesCounter(FeedAdapter.CellFeedViewHolder holder, int toValue) {
-        String likesCountTextFrom = holder.tsLikesCounter.getResources().getQuantityString(
-                R.plurals.likes_count, toValue - 1, toValue - 1
-        );
-        holder.tsLikesCounter.setCurrentText(likesCountTextFrom);
-
-        String likesCountTextTo = holder.tsLikesCounter.getResources().getQuantityString(
-                R.plurals.likes_count, toValue, toValue
-        );
-        holder.tsLikesCounter.setText(likesCountTextTo);
+//        String likesCountTextFrom = holder.tsLikesCounter.getResources().getQuantityString(
+//                R.plurals.likes_count, toValue - 1, toValue - 1
+//        );
+//        holder.tsLikesCounter.setCurrentText(likesCountTextFrom);
+//
+//        String likesCountTextTo = holder.tsLikesCounter.getResources().getQuantityString(
+//                R.plurals.likes_count, toValue, toValue
+//        );
+        holder.likesCount.setText(toValue+"");
     }
 
     private void animatePhotoLike(final FeedAdapter.CellFeedViewHolder holder) {

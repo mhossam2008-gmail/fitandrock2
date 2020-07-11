@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
+
     android:layout_margin="8dp"
     card_view:cardCornerRadius="4dp">
 
@@ -42,16 +43,83 @@
                 card_view:layout_constraintVertical_bias="0.0" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <LinearLayout
+            android:id="@+id/origPostRoot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/origPostConstLayout"
+                android:layout_width="match_parent"
+                android:layout_height="75dp">
+
+                <ImageView
+                    android:id="@+id/ivOrigUserProfile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    card_view:layout_constraintBottom_toBottomOf="parent"
+                    card_view:layout_constraintStart_toStartOf="parent"
+                    card_view:layout_constraintTop_toTopOf="parent"
+                    card_view:layout_constraintVertical_bias="0.473" />
+
+                <TextView
+                    android:id="@+id/tvOrigProfileName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="52dp"
+                    android:layout_marginTop="25dp"
+                    android:layout_marginBottom="25dp"
+                    android:layout_toEndOf="@+id/ivOrigUserProfile"
+                    android:text="TextView"
+                    card_view:layout_constraintBottom_toBottomOf="parent"
+                    card_view:layout_constraintStart_toEndOf="@+id/ivOrigUserProfile"
+                    card_view:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <com.mhossam.rocknfit.view.SquaredFrameLayout
+                android:id="@+id/vOrigImageRoot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/ivOrigFeedCenter"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop" />
+
+
+                <ImageView
+                    android:id="@+id/origPlayIcon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="100dp"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/play"
+                    android:visibility="gone"></ImageView>
+
+            </com.mhossam.rocknfit.view.SquaredFrameLayout>
+        </LinearLayout>
+
         <com.mhossam.rocknfit.view.SquaredFrameLayout
             android:id="@+id/vImageRoot"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:visibility="gone">
 
-            <ImageView
-                android:id="@+id/ivFeedCenter"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop" />
+            <androidx.cardview.widget.CardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/ivFeedCenterContainer">
+
+                <ImageView
+                    android:id="@+id/ivFeedCenter"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop" />
+            </androidx.cardview.widget.CardView>
 
             <View
                 android:id="@+id/vBgLike"
@@ -72,8 +140,8 @@
                 android:id="@+id/playIcon"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitXY"
                 android:layout_margin="100dp"
+                android:scaleType="fitXY"
                 android:src="@drawable/play"
                 android:visibility="gone"></ImageView>
 
@@ -103,12 +171,46 @@
                 android:background="@android:color/transparent"
                 android:src="@drawable/ic_heart_outline_grey" />
 
+            <TextView
+                android:id="@+id/tvLikeCount"
+                android:layout_width="20dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:foregroundGravity="center"
+                android:gravity="center"
+                android:text="59" />
+
             <ImageButton
                 android:id="@+id/btnComments"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="@drawable/btn_feed_action"
                 android:src="@drawable/ic_comment_outline_grey" />
+
+            <TextView
+                android:id="@+id/tvCommentCount"
+                android:layout_width="20dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:foregroundGravity="center"
+                android:gravity="center"
+                android:text="59" />
+
+            <ImageButton
+                android:id="@+id/btnShare"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/btn_feed_action"
+                android:src="@android:drawable/ic_menu_share" />
+
+            <TextView
+                android:id="@+id/tvShareCount"
+                android:layout_width="20dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:foregroundGravity="center"
+                android:gravity="center"
+                android:text="59" />
 
             <ImageButton
                 android:id="@+id/btnMore"
@@ -117,38 +219,6 @@
                 android:background="@drawable/btn_feed_action"
                 android:src="@drawable/ic_more_grey" />
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center_vertical|right">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_heart_small_blue" />
-
-                <TextSwitcher
-                    android:id="@+id/tsLikesCounter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="8dp"
-                    android:layout_marginRight="8dp"
-                    android:inAnimation="@anim/slide_in_likes_counter"
-                    android:outAnimation="@anim/slide_out_likes_counter">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="123 likes"
-                        android:textColor="@color/text_like_counter" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/text_like_counter" />
-                </TextSwitcher>
-            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>

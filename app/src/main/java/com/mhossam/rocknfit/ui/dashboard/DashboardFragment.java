@@ -33,6 +33,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.Utils.LinearLayoutManagerWrapper;
+import com.mhossam.rocknfit.ui.activity.CommentsActivity;
 import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.adapter.FeedAdapter;
@@ -306,12 +307,14 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 
     @Override
     public void onCommentsClick(View v, int position) {
-//        final Intent intent = new Intent(this, CommentsActivity.class);
+        final Intent intent = new Intent(getActivity(), CommentsActivity.class);
         int[] startingLocation = new int[2];
+        Post clickedPost = feedAdapter.getPostAtPosition(position);
+        intent.putExtra("PostID",clickedPost.getPostID());
         v.getLocationOnScreen(startingLocation);
-//        intent.putExtra(CommentsActivity.ARG_DRAWING_START_LOCATION, startingLocation[1]);
-//        startActivity(intent);
-//        overridePendingTransition(0, 0);
+        intent.putExtra(CommentsActivity.ARG_DRAWING_START_LOCATION, startingLocation[1]);
+        startActivity(intent);
+        getActivity().overridePendingTransition(0, 0);
     }
 
     @Override
