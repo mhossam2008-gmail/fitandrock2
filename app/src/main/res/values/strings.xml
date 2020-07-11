@@ -1,4 +1,8 @@
 <resources>
+    <plurals name="likes_count">
+        <item quantity="one">%d like</item>
+        <item quantity="other">%d likes</item>
+    </plurals>
     <string name="app_name">Fit And Rock</string>
     <string name="sign_in">Sign In</string>
     <string name="new_member">New Member</string>
@@ -17,10 +21,6 @@
     <string name="fullname_place_holder">Your Name</string>
     <string name="birthday_place_holder">Birthday</string>
     <string name="sign_up">Sign Up</string>
-    <plurals name="likes_count">
-        <item quantity="one">%d like</item>
-        <item quantity="other">%d likes</item>
-    </plurals>
     <string name="title_activity_news_feed">Home</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Home</string>

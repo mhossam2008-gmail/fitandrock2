@@ -12,7 +12,6 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,15 +22,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
-import com.mhossam.rocknfit.ui.activity.FeedActivity;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.CircleTransformation;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
-import com.mhossam.rocknfit.ui.activity.SignupActivity;
 import com.mhossam.rocknfit.view.LoadingFeedItemView;
 import com.mhossam.rocknfit.view.SquaredFrameLayout;
-import com.mhossam.rocknfit.view.SquaredImageView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;

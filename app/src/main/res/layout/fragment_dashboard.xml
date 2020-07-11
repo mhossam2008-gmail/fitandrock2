@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_scrollFlags="scroll|exitUntilCollapsed"
-    tools:context=".ui.activity.FeedActivity">
+    tools:context=".ui.activity.NewsFeedActivity">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/content"
@@ -41,7 +41,7 @@
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvRecommendedUsers"
                         android:layout_width="match_parent"
-                        android:layout_height="170dp"
+                        android:layout_height="100dp"
                         android:orientation="horizontal"
                         tools:listitem="@layout/follower_rotator_item" />
 

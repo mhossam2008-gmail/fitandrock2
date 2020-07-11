@@ -61,7 +61,7 @@ public class LoginActivity extends BaseAppCompatActivity {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Intent i = new Intent(getApplicationContext() , FeedActivity.class);
+                                        Intent i = new Intent(getApplicationContext() , NewsFeedActivity.class);
                                         startActivity(i);
                                         finish();
                                     }

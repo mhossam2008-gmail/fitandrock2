@@ -2,13 +2,14 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="170dp"
-    android:layout_height="170dp">
+    android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:layout_margin="10dp">
 
     <FrameLayout
         android:id="@+id/flFrameLayout"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="75dp"
         android:foregroundGravity="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -16,8 +17,8 @@
 
         <ImageView
             android:id="@+id/ivUserProfile"
-            android:layout_width="140dp"
-            android:layout_height="140dp"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
             android:layout_gravity="center"
             android:foregroundGravity="center"
             android:scaleType="fitCenter"
@@ -25,19 +26,19 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/view2"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_centerHorizontal="true"
             android:layout_gravity="bottom|right"
             android:elevation="0dp"
             android:foregroundGravity="bottom|right"
             app:cardBackgroundColor="#fcb645"
-            app:cardCornerRadius="30dp">
+            app:cardCornerRadius="15dp">
 
             <ImageView
                 android:id="@+id/imageView1"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_gravity="center"
                 android:foregroundGravity="center"
                 android:scaleType="fitXY"
@@ -46,11 +47,13 @@
     </FrameLayout>
 
     <TextView
+        android:layout_marginTop="10dp"
         android:id="@+id/tvProfileName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@+id/flFrameLayout"
         android:text="TextView"
+        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
