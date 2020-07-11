@@ -48,26 +48,26 @@ public class FeedContextMenu extends LinearLayout {
         ((ViewGroup) getParent()).removeView(FeedContextMenu.this);
     }
 
-    @OnClick(R.id.btnReport)
+    @OnClick(R.id.btnDelete)
     public void onReportClick() {
         if (onItemClickListener != null) {
             onItemClickListener.onReportClick(feedItem);
         }
     }
-
-    @OnClick(R.id.btnSharePhoto)
-    public void onSharePhotoClick() {
-        if (onItemClickListener != null) {
-            onItemClickListener.onSharePhotoClick(feedItem);
-        }
-    }
-
-    @OnClick(R.id.btnCopyShareUrl)
-    public void onCopyShareUrlClick() {
-        if (onItemClickListener != null) {
-            onItemClickListener.onCopyShareUrlClick(feedItem);
-        }
-    }
+//
+//    @OnClick(R.id.btnSharePhoto)
+//    public void onSharePhotoClick() {
+//        if (onItemClickListener != null) {
+//            onItemClickListener.onSharePhotoClick(feedItem);
+//        }
+//    }
+//
+//    @OnClick(R.id.btnCopyShareUrl)
+//    public void onCopyShareUrlClick() {
+//        if (onItemClickListener != null) {
+//            onItemClickListener.onCopyShareUrlClick(feedItem);
+//        }
+//    }
 
     @OnClick(R.id.btnCancel)
     public void onCancelClick() {

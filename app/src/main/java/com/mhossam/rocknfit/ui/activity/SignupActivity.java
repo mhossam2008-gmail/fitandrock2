@@ -1,6 +1,7 @@
 package com.mhossam.rocknfit.ui.activity;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -81,7 +82,10 @@ public class SignupActivity extends BaseAppCompatActivity {
                         Log.d("TAG", response.code() + "");
                         String resource = response.body();
                         if(resource!=null&&resource.contains("Done")) {
-                            Toast.makeText(SignupActivity.this, "Please check your mail to activate account", Toast.LENGTH_SHORT).show();
+                            Intent i = new Intent(SignupActivity.this,RegisterationSuccessActivity.class);
+                            SignupActivity.this.startActivity(i);
+                            SignupActivity.this.finish();
+//                            Toast.makeText(SignupActivity.this, "Please check your mail to activate account", Toast.LENGTH_SHORT).show();
                         }else{
                             Toast.makeText(SignupActivity.this, resource, Toast.LENGTH_SHORT).show();
                         }

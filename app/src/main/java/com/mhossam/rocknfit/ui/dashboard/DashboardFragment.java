@@ -83,7 +83,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
     @BindView(R.id.ivProfileImage)
     ImageView ivProfileImage;
 
-    private DashboardViewModel dashboardViewModel;
+//    private DashboardViewModel dashboardViewModel;
     private APIInterface apiInterface;
     private PopupWindow changeSortPopUp;
     private RecommendedUsersAdapter recommendedUsersAdapter;
@@ -93,25 +93,15 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
     @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        dashboardViewModel =
-                ViewModelProviders.of(this).get(DashboardViewModel.class);
         View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
         ButterKnife.bind(this , root);
 //        swipeRefreshLayout.setEnabled(false);
         apiInterface = APIClient.getClient().create(APIInterface.class);
-        dashboardViewModel.getText().observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(@Nullable String s) {
-//                textView.setText(s);
-            }
-        });
+
         Picasso.get()
                 .load("https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcScj1w0UCdIr4kUblujW7B7IdaZoRmdHyZP5A&usqp=CAU")
                 .placeholder(R.drawable.img_circle_placeholder)
                 .fit()
-//                        .centerCrop()
-//                        .resize(avatarSize,avatarSize)
-//                        .transform(new SquareTransformation())
                 .into(ivProfileImage);
 
         ivProfileImage.setOnClickListener(new View.OnClickListener() {
