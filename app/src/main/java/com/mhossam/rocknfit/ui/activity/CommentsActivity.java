@@ -18,12 +18,15 @@ import android.widget.Toast;
 import androidx.core.view.ViewCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.Utils;
 import com.mhossam.rocknfit.adapter.CommentItemAnimator;
 import com.mhossam.rocknfit.adapter.CommentsAdapter;
+import com.mhossam.rocknfit.database.AppDatabase;
 import com.mhossam.rocknfit.model.AccountInfo;
+import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.PostComment;
 import com.mhossam.rocknfit.view.BaseDrawerActivity;
 import com.mhossam.rocknfit.view.SendCommentButton;
@@ -57,12 +60,16 @@ public class CommentsActivity extends BaseDrawerActivity implements SendCommentB
     private CommentsAdapter commentsAdapter;
     private int drawingStartLocation;
     private ArrayList<PostComment> postComments;
+    private LoggedInUser currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comments);
         commentsAdapter = new CommentsAdapter(this);
+        AppDatabase db = Room.databaseBuilder(CommentsActivity.this,
+                AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+        currentUser  = db.loggedInUserDao().getLoggedInUser();
         startLoadingComments();
         drawingStartLocation = getIntent().getIntExtra(ARG_DRAWING_START_LOCATION, 0);
         if (savedInstanceState == null) {
@@ -216,7 +223,7 @@ public class CommentsActivity extends BaseDrawerActivity implements SendCommentB
         HashMap<String, String> requestMap = super.prepareRequestMap();
         requestMap.put("PostID",getIntent().getStringExtra("PostID"));
         requestMap.put("Action","GetPostComments");
-        requestMap.put("AccountID","95");
+        requestMap.put("AccountID",currentUser.getAccountID());
         requestMap.put("Index","0");
         requestMap.put("Size","20");
         return requestMap;
@@ -226,7 +233,7 @@ public class CommentsActivity extends BaseDrawerActivity implements SendCommentB
         HashMap<String, String> requestMap = super.prepareRequestMap();
         requestMap.put("PostID",getIntent().getStringExtra("PostID"));
         requestMap.put("Action","GetPostComments");
-        requestMap.put("AccountID","95");
+        requestMap.put("AccountID",currentUser.getAccountID());
         requestMap.put("Index","0");
         requestMap.put("Size","20");
         return requestMap;
@@ -236,8 +243,7 @@ public class CommentsActivity extends BaseDrawerActivity implements SendCommentB
         HashMap<String, String> requestMap = super.prepareRequestMap();
         requestMap.put("PostID",getIntent().getStringExtra("PostID"));
         requestMap.put("Action","AddComment");
-        requestMap.put("AccountID","95");
-        requestMap.put("Type","C");
+        requestMap.put("AccountID",currentUser.getAccountID());        requestMap.put("Type","C");
         requestMap.put("Content",etComment.getText().toString());
         return requestMap;
     }

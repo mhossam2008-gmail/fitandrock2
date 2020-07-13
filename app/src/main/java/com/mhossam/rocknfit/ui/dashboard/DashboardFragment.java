@@ -27,12 +27,15 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.Utils.LinearLayoutManagerWrapper;
+import com.mhossam.rocknfit.database.AppDatabase;
+import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.ui.activity.CommentsActivity;
 import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
 import com.mhossam.rocknfit.R;
@@ -89,12 +92,16 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
     private RecommendedUsersAdapter recommendedUsersAdapter;
     private int currentPage = 0;
     private boolean loading = false;
+    private LoggedInUser currentUser;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
         ButterKnife.bind(this , root);
+        AppDatabase db = Room.databaseBuilder(getContext(),
+                AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+        currentUser  = db.loggedInUserDao().getLoggedInUser();
 //        swipeRefreshLayout.setEnabled(false);
         apiInterface = APIClient.getClient().create(APIInterface.class);
 
@@ -166,7 +173,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
     }
 
     private boolean startLoadingRecommendedUser() {
-        Map<String, String> parametersMap = prepareRequestMap();
+        Map<String, String> parametersMap = prepareUserSuggesstionsRequestMap();
         Call<Map<String, AccountInfo>> call = apiInterface.getFollowSuggestions(parametersMap);
 
         call.enqueue(new Callback<Map<String, AccountInfo>>() {
@@ -358,7 +365,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
         result.put("Action", "GetPosts");
         result.put("AccountID", "0");
-        result.put("MyAccount", "95");
+        result.put("MyAccount", currentUser.getAccountID());
         result.put("Index", page+"");
         result.put("Size", "10");
         result.put("Type", "0");
@@ -369,7 +376,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
         result.put("Action", "GetPosts");
         result.put("AccountID", "0");
-        result.put("MyAccount", "95");
+        result.put("AccountID",currentUser.getAccountID());
         result.put("Index", "0");
         result.put("Size", "10");
         result.put("Type", "0");
@@ -384,7 +391,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 //        Limit:100
 //        AccountID:95
         result.put("Action", "FollowSuggestions");
-        result.put("AccountID", "95");
+        result.put("AccountID",currentUser.getAccountID());
         result.put("Limit", "5");
         return result;
     }

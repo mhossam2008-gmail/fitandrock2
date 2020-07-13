@@ -19,11 +19,14 @@ import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.CircleTransformation;
+import com.mhossam.rocknfit.database.AppDatabase;
+import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
 import com.mhossam.rocknfit.view.LoadingFeedItemView;
@@ -54,6 +57,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private final List<Post> feedItems = new ArrayList<>();
     private final APIInterface apiInterface;
+    private final LoggedInUser currentUser;
 
     private Context context;
     private OnFeedItemClickListener onFeedItemClickListener;
@@ -63,7 +67,9 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public FeedAdapter(Context context) {
         this.context = context;
         apiInterface = APIClient.getClient().create(APIInterface.class);
-
+        AppDatabase db = Room.databaseBuilder(context,
+                AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+        currentUser  = db.loggedInUserDao().getLoggedInUser();
     }
 
     @Override
@@ -121,7 +127,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     Map<String, String> parametersMap = prepareRequestMap();
                     parametersMap.put("Action","LikePost");
                     parametersMap.put("PostID",currentFeedItem.getPostID());
-                    parametersMap.put("AccountID","95");
+                    parametersMap.put("AccountID",currentUser.getAccountID());
                     Call<String> call = apiInterface.likePost(parametersMap);
                     call.enqueue(new Callback<String>() {
                         @Override
@@ -159,7 +165,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
                     Map<String, String> parametersMap = prepareRequestMap();
                     parametersMap.put("Action","SharePost");
-                    parametersMap.put("AccountID","95");
+                    parametersMap.put("AccountID",currentUser.getAccountID());
                     parametersMap.put("PostID",currentFeedItem.getPostID());
                     parametersMap.put("Text","Sample Text");
                     Call<String> call = apiInterface.likePost(parametersMap);

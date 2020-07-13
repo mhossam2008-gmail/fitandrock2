@@ -23,6 +23,10 @@ public interface LoggedInUserDao {
             "accountLastName LIKE :last LIMIT 1")
     LoggedInUser findByName(String first, String last);
 
+    @Query("SELECT * FROM loggedinuser LIMIT 1")
+    LoggedInUser getLoggedInUser();
+
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(LoggedInUser... users);
 

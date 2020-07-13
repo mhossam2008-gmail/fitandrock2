@@ -18,11 +18,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.RoundedTransformation;
+import com.mhossam.rocknfit.database.AppDatabase;
+import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.model.PostComment;
 import com.mhossam.rocknfit.ui.activity.CommentsActivity;
@@ -45,6 +48,7 @@ import retrofit2.Response;
  */
 public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    private final LoggedInUser currentUser;
     private Context context;
     private int itemsCount = 0;
     private int lastAnimatedPosition = -1;
@@ -63,6 +67,9 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         this.context = context;
         avatarSize = context.getResources().getDimensionPixelSize(R.dimen.comment_avatar_size);
         apiInterface = APIClient.getClient().create(APIInterface.class);
+        AppDatabase db = Room.databaseBuilder(context,
+                AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+        currentUser  = db.loggedInUserDao().getLoggedInUser();
 
     }
 
@@ -202,7 +209,7 @@ public class CommentsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                     Map<String, String> parametersMap = prepareRequestMap();
                     parametersMap.put("Action","LikeComment");
                     parametersMap.put("CommentID",postComment.getCommentID());
-                    parametersMap.put("AccountID","95");
+                    parametersMap.put("AccountID",currentUser.getAccountID());
                     Call<String> call = apiInterface.likePost(parametersMap);
                     call.enqueue(new Callback<String>() {
                         @Override
