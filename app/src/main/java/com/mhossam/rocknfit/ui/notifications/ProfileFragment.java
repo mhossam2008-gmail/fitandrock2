@@ -41,6 +41,8 @@ public class ProfileFragment extends Fragment {
         AppDatabase db = Room.databaseBuilder(getContext(),
                 AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
         LoggedInUser currentUser  = db.loggedInUserDao().getLoggedInUser();
+
+
         if(currentUser != null){
             String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org"+currentUser.getAccountImage();
             String coverPhoto = "https://www.fitandrock.com/Uploads/"+currentUser.getAccountContainer()+"/CoverPhotos/"+currentUser.getAccountCover();

@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.room.Room;
 
 import com.mhossam.rocknfit.R;
@@ -37,6 +38,8 @@ public class LoginActivity extends BaseAppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.hide();
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
         login.setOnClickListener(new View.OnClickListener() {

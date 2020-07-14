@@ -21,7 +21,7 @@ public interface APIInterface {
 
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")
-    Call<Map<String, LoggedInUser>> updateLoggedUserInfo(@FieldMap Map<String, String> params);
+    Call<Map<String, LoggedInUser>> getLoggedUserInfo(@FieldMap Map<String, String> params);
 
 
     @FormUrlEncoded

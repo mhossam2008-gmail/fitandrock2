@@ -11,6 +11,8 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.appcompat.app.ActionBar;
+
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
 
@@ -46,6 +48,8 @@ public class SignupActivity extends BaseAppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ActionBar actionBar = getSupportActionBar();
+        actionBar.hide();
         setContentView(R.layout.activity_signup);
         ButterKnife.bind(this);
 
