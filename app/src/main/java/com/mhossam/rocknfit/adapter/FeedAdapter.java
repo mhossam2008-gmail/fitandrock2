@@ -23,6 +23,7 @@ import androidx.room.Room;
 
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
+import com.mhossam.rocknfit.ProfileActivity;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.CircleTransformation;
 import com.mhossam.rocknfit.database.AppDatabase;
@@ -358,6 +359,15 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                         .transform(new CircleTransformation())
                         .into(origProfilePhoto);
 
+//                origProfilePhoto.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        Intent i = new Intent(context, ProfileActivity.class);
+//                        i.putExtra("AccountID",feedItem.get());
+//                        context.startActivity(i);
+//                    }
+//                });
+
                 origPlayIcon.setVisibility(View.GONE);
                 if(feedItem.getPostMedia() == null || feedItem.getPostMedia().equals("")){
                     origRoot.setVisibility(View.GONE);
@@ -467,6 +477,14 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 .resize(avatarSize,avatarSize)
                     .transform(new CircleTransformation())
                 .into(ivUserProfile);
+            ivUserProfile.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent i = new Intent(context, ProfileActivity.class);
+                    i.putExtra("AccountID",feedItem.getAccountID());
+                    context.startActivity(i);
+                }
+            });
             commentsCount.setText(feedItem.getCommentsCounter());
             likesCount.setText(feedItem.getLikesCounter()+"");
             shareCount.setText(feedItem.getShareCounter());

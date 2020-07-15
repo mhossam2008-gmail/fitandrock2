@@ -105,8 +105,11 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 //        swipeRefreshLayout.setEnabled(false);
         apiInterface = APIClient.getClient().create(APIInterface.class);
 
+        String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org"+currentUser.getAccountImage();
+
+
         Picasso.get()
-                .load("https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcScj1w0UCdIr4kUblujW7B7IdaZoRmdHyZP5A&usqp=CAU")
+                .load(origUserProfilePhoto)
                 .placeholder(R.drawable.img_circle_placeholder)
                 .fit()
                 .into(ivProfileImage);

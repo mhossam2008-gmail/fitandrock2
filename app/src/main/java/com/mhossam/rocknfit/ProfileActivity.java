@@ -1,36 +1,34 @@
-package com.mhossam.rocknfit.ui.notifications;
+package com.mhossam.rocknfit;
+
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
+import android.widget.Toast;
 
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
-import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.CircleTransformation;
 import com.mhossam.rocknfit.Utils.LinearLayoutManagerWrapper;
 import com.mhossam.rocknfit.adapter.FeedAdapter;
 import com.mhossam.rocknfit.adapter.FeedItemAnimator;
 import com.mhossam.rocknfit.database.AppDatabase;
+import com.mhossam.rocknfit.model.AccountInfo;
 import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.ui.activity.CommentsActivity;
 import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
+import com.mhossam.rocknfit.ui.activity.SplashActivity;
+import com.mhossam.rocknfit.view.BaseActivity;
 import com.mhossam.rocknfit.view.FeedContextMenu;
 import com.mhossam.rocknfit.view.FeedContextMenuManager;
 import com.squareup.picasso.Picasso;
@@ -47,7 +45,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItemClickListener,
+public class ProfileActivity extends BaseActivity implements FeedAdapter.OnFeedItemClickListener,
         FeedContextMenu.OnFeedContextMenuItemClickListener {
 
     @BindView(R.id.photo)
@@ -64,51 +62,75 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
     private FeedAdapter feedAdapter;
     private boolean pendingIntroAnimation;
     private APIInterface apiInterface;
-    private LoggedInUser currentUser;
-
+    private AccountInfo currentUser;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.fragment_profile, container, false);
-        ButterKnife.bind(this, root);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_profile);
+        ButterKnife.bind(this);
 
-        AppDatabase db = Room.databaseBuilder(getContext(),
-                AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
-        currentUser  = db.loggedInUserDao().getLoggedInUser();
+        String accountID = getIntent().getStringExtra("AccountID");
+        if(accountID!=null&&!accountID.isEmpty()){
+            apiInterface = APIClient.getClient().create(APIInterface.class);
+            HashMap<String, String> requestMap = this.prepareRequestMap();
+            requestMap.put("Action", "GetAccountByID");
+            requestMap.put("AccountID", accountID);
 
+            Call<Map<String, LoggedInUser>> call = apiInterface.getLoggedUserInfo(requestMap);
 
-        if(currentUser != null){
-            String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org"+currentUser.getAccountImage();
-            String coverPhoto = "https://www.fitandrock.com/Uploads/"+currentUser.getAccountContainer()+"/CoverPhotos/"+currentUser.getAccountCover();
-            Picasso.get()
-                    .load(origUserProfilePhoto)
-                    .placeholder(R.drawable.img_circle_placeholder)
-                    .fit()
-                    .transform(new CircleTransformation())
-                    .into(profilePhoto);
+            call.enqueue(new Callback<Map<String, LoggedInUser>>() {
+                @Override
+                public void onResponse(Call<Map<String, LoggedInUser>> call, Response<Map<String, LoggedInUser>> response) {
 
-            Picasso.get()
-                    .load(coverPhoto)
-                    .fit()
-                    .into(banner);
+                    Log.d("TAG", response.code() + "");
+
+                    Map<String, LoggedInUser> resource = response.body();
+                    if (response.body() != null && response.body().size() == 1) {
+                        currentUser = resource.get("1");
+                        if(currentUser != null){
+                            String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org"+currentUser.getAccountImage();
+                            String coverPhoto = "https://www.fitandrock.com/Uploads/"+currentUser.getAccountContainer()+"/CoverPhotos/"+currentUser.getAccountCover();
+                            Picasso.get()
+                                    .load(origUserProfilePhoto)
+                                    .placeholder(R.drawable.img_circle_placeholder)
+                                    .fit()
+                                    .transform(new CircleTransformation())
+                                    .into(profilePhoto);
+
+                            Picasso.get()
+                                    .load(coverPhoto)
+                                    .fit()
+                                    .into(banner);
+                        }
+                        name.setText(currentUser.getAccountFirstName()+" "+currentUser.getAccountLastName());
+                        setupFeed();
+                    } else {
+                        Toast.makeText(ProfileActivity.this, "Internal Server Error", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Map<String, LoggedInUser>> call, Throwable t) {
+                    call.cancel();
+                }
+            });
         }
-        apiInterface = APIClient.getClient().create(APIInterface.class);
-        name.setText(currentUser.getAccountFirstName()+" "+currentUser.getAccountLastName());
-        setupFeed();
-        return root;
+
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void setupFeed() {
-        LinearLayoutManagerWrapper linearLayoutManager = new LinearLayoutManagerWrapper(((NewsFeedActivity)getActivity())) {
+        LinearLayoutManagerWrapper linearLayoutManager = new LinearLayoutManagerWrapper(ProfileActivity.this) {
             @Override
             protected int getExtraLayoutSpace(RecyclerView.State state) {
                 return 300;
             }
         };
         rvFeed.setLayoutManager(linearLayoutManager);
-        feedAdapter = new FeedAdapter(((NewsFeedActivity)getActivity()));
+        feedAdapter = new FeedAdapter(ProfileActivity.this);
         feedAdapter.setOnFeedItemClickListener(this);
         rvFeed.setAdapter(feedAdapter);
 
@@ -209,14 +231,14 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
 
     @Override
     public void onCommentsClick(View v, int position) {
-        final Intent intent = new Intent(getActivity(), CommentsActivity.class);
+        final Intent intent = new Intent(ProfileActivity.this, CommentsActivity.class);
         int[] startingLocation = new int[2];
         Post clickedPost = feedAdapter.getPostAtPosition(position);
         intent.putExtra("PostID",clickedPost.getPostID());
         v.getLocationOnScreen(startingLocation);
         intent.putExtra(CommentsActivity.ARG_DRAWING_START_LOCATION, startingLocation[1]);
         startActivity(intent);
-        getActivity().overridePendingTransition(0, 0);
+        ProfileActivity.this.overridePendingTransition(0, 0);
     }
 
     @Override
@@ -230,7 +252,7 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
         v.getLocationOnScreen(startingLocation);
         startingLocation[0] += v.getWidth() / 2;
 //        UserProfileActivity.startUserProfileFromLocation(startingLocation, this);
-        ((NewsFeedActivity)getActivity()).overridePendingTransition(0, 0);
+        (ProfileActivity.this).overridePendingTransition(0, 0);
     }
 
     @Override
@@ -254,7 +276,7 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
     }
 
     protected HashMap<String, String> prepareRequestMap(int page) {
-        HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
+        HashMap<String, String> result = (ProfileActivity.this).prepareRequestMap();
         result.put("Action", "GetPosts");
         result.put("AccountID", currentUser.getAccountID());
         result.put("MyAccount", currentUser.getAccountID());
@@ -263,5 +285,4 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
         result.put("Type", "0");
         return result;
     }
-
 }

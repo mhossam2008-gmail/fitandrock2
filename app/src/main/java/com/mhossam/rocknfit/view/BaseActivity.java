@@ -1,9 +1,11 @@
 package com.mhossam.rocknfit.view;
 
+import android.graphics.Color;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 
@@ -22,9 +24,7 @@ public class BaseActivity extends BaseAppCompatActivity {
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    @Nullable
-    @BindView(R.id.ivLogo)
-    ImageView ivLogo;
+
 
     private MenuItem inboxMenuItem;
 
@@ -66,7 +66,4 @@ public class BaseActivity extends BaseAppCompatActivity {
         return inboxMenuItem;
     }
 
-    public ImageView getIvLogo() {
-        return ivLogo;
-    }
 }
