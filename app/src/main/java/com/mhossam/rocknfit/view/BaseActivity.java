@@ -45,7 +45,7 @@ public class BaseActivity extends BaseAppCompatActivity {
 
     protected void setupToolbar() {
         if (toolbar != null) {
-            setSupportActionBar(toolbar);
+//            setSupportActionBar(toolbar);
             toolbar.setNavigationIcon(R.drawable.ic_menu_white);
         }
     }
