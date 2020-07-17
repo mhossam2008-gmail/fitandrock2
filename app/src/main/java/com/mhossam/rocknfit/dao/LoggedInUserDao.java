@@ -30,6 +30,6 @@ public interface LoggedInUserDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertAll(LoggedInUser... users);
 
-    @Delete
-    void delete(LoggedInUser user);
+    @Query("DELETE FROM loggedinuser")
+    void delete();
 }

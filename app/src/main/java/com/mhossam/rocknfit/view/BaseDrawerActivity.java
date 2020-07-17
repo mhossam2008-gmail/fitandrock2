@@ -1,17 +1,25 @@
 package com.mhossam.rocknfit.view;
 
+import android.content.Intent;
 import android.os.Handler;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Switch;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.room.Room;
 
 import com.google.android.material.navigation.NavigationView;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.CircleTransformation;
+import com.mhossam.rocknfit.database.AppDatabase;
+import com.mhossam.rocknfit.ui.activity.LoginActivity;
 import com.squareup.picasso.Picasso;
 
 import butterknife.BindDimen;
@@ -41,8 +49,24 @@ public class BaseDrawerActivity extends BaseActivity {
         super.setContentViewWithoutInject(R.layout.activity_drawer);
         ViewGroup viewGroup = (ViewGroup) findViewById(R.id.flContentRoot);
         LayoutInflater.from(this).inflate(layoutResID, viewGroup, true);
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+
         bindViews();
         setupHeader();
+        vNavigation.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int id=item.getItemId();
+                if(id==R.id.menu_logout){
+                    db.loggedInUserDao().delete();
+                    Intent i = new Intent(BaseDrawerActivity.this, LoginActivity.class);
+                    startActivity(i);
+                    finish();
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -91,4 +115,8 @@ public class BaseDrawerActivity extends BaseActivity {
         }, 200);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        return super.onOptionsItemSelected(item);
+    }
 }

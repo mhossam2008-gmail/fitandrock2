@@ -5,20 +5,25 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import com.google.android.material.navigation.NavigationView;
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.R;
@@ -59,6 +64,10 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
     @BindView(R.id.rvFeed)
     RecyclerView rvFeed;
 
+    @BindView(R.id.btn_ham_menu)
+    ImageButton btnHamMenu;
+
+
     private int currentPage = 0;
     private boolean loading = false;
     private FeedAdapter feedAdapter;
@@ -72,6 +81,18 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_profile, container, false);
         ButterKnife.bind(this, root);
+
+        btnHamMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DrawerLayout navDrawer = getActivity().findViewById(R.id.drawerLayout);
+                // If the navigation drawer is not open then open it, if its already open then close it.
+                if(!navDrawer.isDrawerOpen(GravityCompat.START))
+                    navDrawer.openDrawer(GravityCompat.START);
+                else navDrawer.closeDrawer(GravityCompat.END);
+            }
+        });
+
 
         AppDatabase db = Room.databaseBuilder(getContext(),
                 AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
