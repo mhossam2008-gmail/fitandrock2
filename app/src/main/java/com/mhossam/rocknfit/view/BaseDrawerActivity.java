@@ -63,6 +63,8 @@ public class BaseDrawerActivity extends BaseActivity {
                     Intent i = new Intent(BaseDrawerActivity.this, LoginActivity.class);
                     startActivity(i);
                     finish();
+                }else if(id==R.id.menu_profile_edit){
+                    Toast.makeText(BaseDrawerActivity.this, "Under development", Toast.LENGTH_SHORT).show();
                 }
                 return true;
             }

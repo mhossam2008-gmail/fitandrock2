@@ -41,7 +41,10 @@ import com.mhossam.rocknfit.view.LoadingFeedItemView;
 import com.mhossam.rocknfit.view.SquaredFrameLayout;
 import com.squareup.picasso.Picasso;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -295,6 +298,12 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         LinearLayout origPostRoot;
         @BindView(R.id.tvOrigPost)
         TextView origPost;
+        @BindView(R.id.tvPostAction)
+        TextView tvPostAction;
+        @BindView(R.id.tvPostType)
+        TextView tvPostType;
+        @BindView(R.id.tvPostDate)
+        TextView tvPostDate;
 
         @BindDimen(R.dimen.global_menu_avatar_size)
         int avatarSize;
@@ -309,12 +318,22 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         public void bindView(Post feedItem) {
             this.feedItem = feedItem;
+            tvPostAction.setText(" shared");
+            tvPostType.setText(" Status");
+//            2020-07-17 15:52:38
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            try {
+                Date date = dateFormat.parse(feedItem.getCreationDate());
+                tvPostDate.setText("");
+                tvPostDate.setText(getDateDiffernce(date));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
             if (!feedItem.getOriginalPostID().equals("0") && feedItem.getPostType().equalsIgnoreCase("h")) {
 
                 vImageRoot.setVisibility(View.GONE);
 
                 origPostRoot.setVisibility(View.VISIBLE);
-
                 String origUserProfilePhoto = "https://www.fitandrock.com/" + feedItem.getOrgPicturePath();
                 String origName = feedItem.getOrgName();
                 origProfileName.setText(origName);
@@ -333,7 +352,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 } else if (feedItem.getPostMedia() instanceof String && ((String) feedItem.getPostMedia()).contains("youtube")) {
                     String postPhoto = ((String) feedItem.getPostMedia()).replace("www.youtube.com/watch?v=", "img.youtube.com/vi/");
                     postPhoto += "/mqdefault.jpg";
-
+                    tvPostType.setText(" Video");
                     Picasso.get()
                             .load(postPhoto)
                             .placeholder(R.drawable.img_circle_placeholder)
@@ -360,7 +379,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     });
                 } else {
                     String postPhoto = "https://www.fitandrock.com" + feedItem.getFullImagePath();
-
+                    tvPostType.setText(" Picture");
+                    tvPostAction.setText(" shared");
                     Picasso.get()
                             .load(postPhoto)
                             .placeholder(R.drawable.img_circle_placeholder)
@@ -374,10 +394,13 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 playIcon.setVisibility(View.GONE);
                 if (feedItem.getPostMedia() == null || feedItem.getPostMedia().equals("")) {
                     vImageRoot.setVisibility(View.GONE);
+                    tvPostType.setText(" Status");
+                    tvPostAction.setText(" updated");
                 } else if (feedItem.getPostMedia() instanceof String && ((String) feedItem.getPostMedia()).contains("youtube")) {
                     String postPhoto = ((String) feedItem.getPostMedia()).replace("www.youtube.com/watch?v=", "img.youtube.com/vi/");
                     postPhoto += "/mqdefault.jpg";
-
+                    tvPostType.setText(" Video");
+//                    tvPostAction.setText("updated");
                     Picasso.get()
                             .load(postPhoto)
                             .placeholder(R.drawable.img_circle_placeholder)
@@ -404,7 +427,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     });
                 } else {
                     String postPhoto = "https://www.fitandrock.com" + feedItem.getFullImagePath();
-
+                    tvPostType.setText(" Picture");
+                    tvPostAction.setText(" shared");
                     Picasso.get()
                             .load(postPhoto)
                             .placeholder(R.drawable.img_circle_placeholder)
@@ -520,7 +544,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 .into(sharedPostOwnerImage);
         SquaredFrameLayout squaredFrameLayout = layout.findViewById(R.id.vshareImageRoot);
         squaredFrameLayout.setVisibility(View.GONE);
-        if(sharedPost.getFullImagePath()!=null&& !sharedPost.getFullImagePath().trim().endsWith("/")){
+        if (sharedPost.getFullImagePath() != null && !sharedPost.getFullImagePath().trim().endsWith("/")) {
 //            SquaredFrameLayout squaredFrameLayout = layout.findViewById(R.id.vshareImageRoot);
             squaredFrameLayout.setVisibility(View.VISIBLE);
 
@@ -579,5 +603,43 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         });
     }
 
+    public static String getDateDiffernce(Date startDate) {
+        //milliseconds
+        Date endDate = new Date();
+        long different = endDate.getTime() - startDate.getTime();
+
+        System.out.println("startDate : " + startDate);
+        System.out.println("endDate : "+ endDate);
+        System.out.println("different : " + different);
+
+        long secondsInMilli = 1000;
+        long minutesInMilli = secondsInMilli * 60;
+        long hoursInMilli = minutesInMilli * 60;
+        long daysInMilli = hoursInMilli * 24;
+
+        long elapsedDays = different / daysInMilli;
+        different = different % daysInMilli;
+
+        long elapsedHours = different / hoursInMilli;
+        different = different % hoursInMilli;
+
+        long elapsedMinutes = different / minutesInMilli;
+        different = different % minutesInMilli;
+
+        long elapsedSeconds = different / secondsInMilli;
+
+        System.out.printf(
+                "%d days, %d hours, %d minutes, %d seconds%n",
+                elapsedDays, elapsedHours, elapsedMinutes, elapsedSeconds);
+        if(elapsedDays > 7){
+            return elapsedDays/7 + "w ago";
+        }else if(elapsedDays>1){
+            return elapsedDays+"d ago";
+        }else if(elapsedHours>1){
+            return elapsedHours+"h ago";
+        }else{
+            return "";
+        }
+    }
 
 }

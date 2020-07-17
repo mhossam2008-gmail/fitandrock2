@@ -34,15 +34,12 @@
                 android:id="@+id/tvProfileName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="52dp"
-                android:layout_marginTop="25dp"
-                android:layout_marginBottom="25dp"
+                android:layout_marginStart="15dp"
+                android:layout_marginTop="10dp"
                 android:layout_toEndOf="@+id/ivUserProfile"
                 android:text="TextView"
-                card_view:layout_constraintBottom_toBottomOf="parent"
                 card_view:layout_constraintStart_toEndOf="@+id/ivUserProfile"
-                card_view:layout_constraintTop_toTopOf="parent"
-                card_view:layout_constraintVertical_bias="0.0" />
+                card_view:layout_constraintTop_toTopOf="parent" />
 
             <ImageButton
                 android:id="@+id/btnMore"
@@ -53,6 +50,33 @@
                 card_view:layout_constraintBottom_toBottomOf="parent"
                 card_view:layout_constraintEnd_toEndOf="parent"
                 card_view:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tvPostAction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:text="made change"
+                card_view:layout_constraintStart_toEndOf="@+id/tvProfileName"
+                card_view:layout_constraintTop_toTopOf="@+id/tvProfileName" />
+
+            <TextView
+                android:id="@+id/tvPostType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:text="TextView"
+                android:textColor="@color/btn_send_normal"
+                card_view:layout_constraintStart_toEndOf="@+id/tvPostAction"
+                card_view:layout_constraintTop_toTopOf="@+id/tvPostAction" />
+
+            <TextView
+                android:id="@+id/tvPostDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2W"
+                card_view:layout_constraintStart_toStartOf="@+id/tvProfileName"
+                card_view:layout_constraintTop_toBottomOf="@+id/tvProfileName" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
