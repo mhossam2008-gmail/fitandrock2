@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -44,6 +46,9 @@ public class QuestionsFragment extends Fragment {
     ArrayList<Question> questionsList;
     private QuestionAdapter questionAdapter;
     private boolean loading;
+
+    @BindView(R.id.list)
+    RecyclerView recyclerView;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -114,11 +119,12 @@ public class QuestionsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_questions_list, container, false);
+        ButterKnife.bind(this , view);
         questionAdapter = new QuestionAdapter(new ArrayList<Question>());
         // Set the adapter
-        if (view instanceof RecyclerView) {
+        if (recyclerView instanceof RecyclerView) {
             Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
+//            recyclerView = (RecyclerView) view;
             recyclerView.setLayoutManager(new LinearLayoutManagerWrapper(context));
             recyclerView.setAdapter(questionAdapter);
             recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {

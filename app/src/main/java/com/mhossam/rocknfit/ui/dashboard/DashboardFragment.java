@@ -1,53 +1,69 @@
 package com.mhossam.rocknfit.ui.dashboard;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.StrictMode;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
-import com.mhossam.rocknfit.Utils.LinearLayoutManagerWrapper;
-import com.mhossam.rocknfit.database.AppDatabase;
-import com.mhossam.rocknfit.model.LoggedInUser;
-import com.mhossam.rocknfit.ui.activity.CommentsActivity;
-import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
 import com.mhossam.rocknfit.R;
+import com.mhossam.rocknfit.Utils.LinearLayoutManagerWrapper;
 import com.mhossam.rocknfit.adapter.FeedAdapter;
 import com.mhossam.rocknfit.adapter.FeedItemAnimator;
 import com.mhossam.rocknfit.adapter.RecommendedUsersAdapter;
+import com.mhossam.rocknfit.database.AppDatabase;
 import com.mhossam.rocknfit.model.AccountInfo;
+import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
+import com.mhossam.rocknfit.ui.activity.CommentsActivity;
+import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
 import com.mhossam.rocknfit.view.FeedContextMenu;
 import com.mhossam.rocknfit.view.FeedContextMenuManager;
 import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,27 +71,24 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.hdodenhof.circleimageview.CircleImageView;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedItemClickListener,
+public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedItemClickListener,
         FeedContextMenu.OnFeedContextMenuItemClickListener {
 
-    public static final String ACTION_SHOW_LOADING_ITEM = "action_show_loading_item";
 
-    private static final int ANIM_DURATION_TOOLBAR = 300;
-    private static final int ANIM_DURATION_FAB = 400;
-
+    private static final int GALLERY_PICTURE_REQUEST = 2;
     private FeedAdapter feedAdapter;
 
     private boolean pendingIntroAnimation;
 
     @BindView(R.id.rvFeed)
     RecyclerView rvFeed;
-
-//    @BindView(R.id.srLayout)
-//    SwipeRefreshLayout swipeRefreshLayout;
 
     @BindView(R.id.rvRecommendedUsers)
     RecyclerView rvRecommendedUsers;
@@ -86,26 +99,47 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
     @BindView(R.id.ivProfileImage)
     ImageView ivProfileImage;
 
-//    private DashboardViewModel dashboardViewModel;
+    @BindView(R.id.etNewPost)
+    EditText etNewPost;
+
+    @BindView(R.id.btn_ham_menu)
+    ImageButton btnHamMenu;
+
+    CircleImageView ivUserProfilePost;
+
+    TextView etPostText;
+
     private APIInterface apiInterface;
     private PopupWindow changeSortPopUp;
     private RecommendedUsersAdapter recommendedUsersAdapter;
     private int currentPage = 0;
     private boolean loading = false;
     private LoggedInUser currentUser;
+    private final static int CAMERA_PIC_REQUEST = 1;
+    private View layout;
+    private boolean isImagePost = false;
+    private Bitmap bitmap;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_dashboard, container, false);
-        ButterKnife.bind(this , root);
+        ButterKnife.bind(this, root);
         AppDatabase db = Room.databaseBuilder(getContext(),
                 AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
-        currentUser  = db.loggedInUserDao().getLoggedInUser();
-//        swipeRefreshLayout.setEnabled(false);
+        currentUser = db.loggedInUserDao().getLoggedInUser();
         apiInterface = APIClient.getClient().create(APIInterface.class);
-
-        String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org"+currentUser.getAccountImage();
+        btnHamMenu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DrawerLayout navDrawer = getActivity().findViewById(R.id.drawerLayout);
+                // If the navigation drawer is not open then open it, if its already open then close it.
+                if(!navDrawer.isDrawerOpen(GravityCompat.START))
+                    navDrawer.openDrawer(GravityCompat.START);
+                else navDrawer.closeDrawer(GravityCompat.END);
+            }
+        });
+        String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org" + currentUser.getAccountImage();
 
 
         Picasso.get()
@@ -117,11 +151,18 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         ivProfileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showSortPopup((NewsFeedActivity)getActivity());
+                ((BottomNavigationView) getActivity().findViewById(R.id.nav_view)).setSelectedItemId(R.id.navigation_profile);
             }
         });
 
-        ((NewsFeedActivity)getActivity()).setFragment(this);
+        etNewPost.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showPostPopup((NewsFeedActivity) getActivity());
+            }
+        });
+
+        ((NewsFeedActivity) getActivity()).setFragment(this);
         setupFollowSuggesstions();
         setupFeed();
 
@@ -130,8 +171,8 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 
     private void setupFollowSuggesstions() {
 
-        rvRecommendedUsers.setLayoutManager(new LinearLayoutManagerWrapper((NewsFeedActivity)getActivity(), LinearLayoutManager.HORIZONTAL, false));
-        recommendedUsersAdapter = new RecommendedUsersAdapter((NewsFeedActivity)getActivity());
+        rvRecommendedUsers.setLayoutManager(new LinearLayoutManagerWrapper((NewsFeedActivity) getActivity(), LinearLayoutManager.HORIZONTAL, false));
+        recommendedUsersAdapter = new RecommendedUsersAdapter((NewsFeedActivity) getActivity());
         rvRecommendedUsers.setAdapter(recommendedUsersAdapter);
 
         startLoadingRecommendedUser();
@@ -140,30 +181,28 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void setupFeed() {
-        LinearLayoutManagerWrapper linearLayoutManager = new LinearLayoutManagerWrapper(((NewsFeedActivity)getActivity())) {
+        LinearLayoutManagerWrapper linearLayoutManager = new LinearLayoutManagerWrapper(((NewsFeedActivity) getActivity())) {
             @Override
             protected int getExtraLayoutSpace(RecyclerView.State state) {
                 return 300;
             }
         };
         rvFeed.setLayoutManager(linearLayoutManager);
-        feedAdapter = new FeedAdapter(((NewsFeedActivity)getActivity()));
+        feedAdapter = new FeedAdapter(((NewsFeedActivity) getActivity()));
         feedAdapter.setOnFeedItemClickListener(this);
         rvFeed.setAdapter(feedAdapter);
 
         rvFeed.setOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-                if(dy > 0) //check for scroll down
+                if (dy > 0) //check for scroll down
                 {
                     int visibleItemCount = linearLayoutManager.getChildCount();
                     int totalItemCount = linearLayoutManager.getItemCount();
                     int pastVisiblesItems = linearLayoutManager.findFirstVisibleItemPosition();
 
-                    if (!loading)
-                    {
-                        if ( (visibleItemCount + pastVisiblesItems) >= totalItemCount)
-                        {
+                    if (!loading) {
+                        if ((visibleItemCount + pastVisiblesItems) >= totalItemCount) {
                             startLoading(false);
                         }
                     }
@@ -187,10 +226,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 
                 Map<String, AccountInfo> resource = response.body();
                 if (resource != null) {
-//                    setupFeed();
                     fillUserSuggestions(resource);
-//                    feedAdapter.updateItems(true,new ArrayList<Post>());
-
                 }
             }
 
@@ -204,7 +240,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 
     private void fillUserSuggestions(Map<String, AccountInfo> resource) {
         List<AccountInfo> result = new ArrayList(resource.values());
-        recommendedUsersAdapter.updateItems(true,result);
+        recommendedUsersAdapter.updateItems(true, result);
         recommendedUsersAdapter.notifyDataSetChanged();
 
 //        rvFeed.setOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -214,23 +250,6 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 //            }
 //        });
         rvRecommendedUsers.setItemAnimator(new FeedItemAnimator());
-    }
-
-    public void onNewIntent(Intent intent) {
-        if (ACTION_SHOW_LOADING_ITEM.equals(intent.getAction())) {
-            showFeedLoadingItemDelayed();
-        }
-    }
-
-
-    public void showFeedLoadingItemDelayed() {
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-//                rvFeed.smoothScrollToPosition(0);
-//                feedAdapter.showLoadingView();
-            }
-        }, 500);
     }
 
     public boolean startLoading(boolean animate) {
@@ -247,10 +266,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
 
                 Map<String, Post> resource = response.body();
                 if (resource != null) {
-//                    setupFeed();
-                    startIntroAnimation(resource,animate);
-//                    feedAdapter.updateItems(true,new ArrayList<Post>());
-
+                    startIntroAnimation(resource, animate);
                 }
             }
 
@@ -263,42 +279,13 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
     }
 
     private void startIntroAnimation(Map<String, Post> resource, boolean animate) {
-//        int actionbarSize = Utils.dpToPx(56);
-//        ((NewsFeedActivity)getActivity()).getToolbar().setTranslationY(-actionbarSize);
-//        ((NewsFeedActivity)getActivity()).getIvLogo().setTranslationY(-actionbarSize);
-//        ((NewsFeedActivity)getActivity()).getInboxMenuItem().getActionView().setTranslationY(-actionbarSize);
-
-//        ((NewsFeedActivity)getActivity()).getToolbar().animate()
-//                .translationY(0)
-//                .setDuration(ANIM_DURATION_TOOLBAR)
-//                .setStartDelay(300);
-//        ((NewsFeedActivity)getActivity()).getIvLogo().animate()
-//                .translationY(0)
-//                .setDuration(ANIM_DURATION_TOOLBAR)
-//                .setStartDelay(400);
-//        ((NewsFeedActivity)getActivity()).getInboxMenuItem().getActionView().animate()
-//                .translationY(0)
-//                .setDuration(ANIM_DURATION_TOOLBAR)
-//                .setStartDelay(500)
-//                .setListener(new AnimatorListenerAdapter() {
-//                    @Override
-//                    public void onAnimationEnd(Animator animation) {
-                        startContentAnimation(new ArrayList<Post>(resource.values()),animate);
-//                    }
-//                })
-//                .start();
+        startContentAnimation(new ArrayList<Post>(resource.values()), animate);
     }
 
     private void startContentAnimation(List<Post> values, boolean animate) {
-//        fabCreate.animate()
-//                .translationY(0)
-//                .setInterpolator(new OvershootInterpolator(1.f))
-//                .setStartDelay(300)
-//                .setDuration(ANIM_DURATION_FAB)
-//                .start();
-        if(currentPage==0) {
+        if (currentPage == 0) {
             feedAdapter.updateItems(animate, values);
-        }else{
+        } else {
             feedAdapter.updateItems(animate, values, true);
         }
         currentPage++;
@@ -310,7 +297,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         final Intent intent = new Intent(getActivity(), CommentsActivity.class);
         int[] startingLocation = new int[2];
         Post clickedPost = feedAdapter.getPostAtPosition(position);
-        intent.putExtra("PostID",clickedPost.getPostID());
+        intent.putExtra("PostID", clickedPost.getPostID());
         v.getLocationOnScreen(startingLocation);
         intent.putExtra(CommentsActivity.ARG_DRAWING_START_LOCATION, startingLocation[1]);
         startActivity(intent);
@@ -327,8 +314,7 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         int[] startingLocation = new int[2];
         v.getLocationOnScreen(startingLocation);
         startingLocation[0] += v.getWidth() / 2;
-//        UserProfileActivity.startUserProfileFromLocation(startingLocation, this);
-        ((NewsFeedActivity)getActivity()).overridePendingTransition(0, 0);
+        ((NewsFeedActivity) getActivity()).overridePendingTransition(0, 0);
     }
 
     @Override
@@ -351,35 +337,22 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         FeedContextMenuManager.getInstance().hideContextMenu();
     }
 
-//    @OnClick(R.id.btnCreate)
-//    public void onTakePhotoClick() {
-//        int[] startingLocation = new int[2];
-////        fabCreate.getLocationOnScreen(startingLocation);
-////        startingLocation[0] += fabCreate.getWidth() / 2;
-////        TakePhotoActivity.startCameraFromLocation(startingLocation, this);
-//        ((NewsFeedActivity)getActivity()).overridePendingTransition(0, 0);
-//    }
-
-    public void showLikedSnackbar() {
-        Snackbar.make(clContent, "Liked!", Snackbar.LENGTH_SHORT).show();
-    }
-
     protected HashMap<String, String> prepareRequestMap(int page) {
-        HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
+        HashMap<String, String> result = ((NewsFeedActivity) getActivity()).prepareRequestMap();
         result.put("Action", "GetPosts");
         result.put("AccountID", "0");
         result.put("MyAccount", currentUser.getAccountID());
-        result.put("Index", page+"");
+        result.put("Index", page + "");
         result.put("Size", "10");
         result.put("Type", "0");
         return result;
     }
 
     protected HashMap<String, String> prepareRequestMap() {
-        HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
+        HashMap<String, String> result = ((NewsFeedActivity) getActivity()).prepareRequestMap();
         result.put("Action", "GetPosts");
         result.put("AccountID", "0");
-        result.put("AccountID",currentUser.getAccountID());
+        result.put("AccountID", currentUser.getAccountID());
         result.put("Index", "0");
         result.put("Size", "10");
         result.put("Type", "0");
@@ -387,24 +360,17 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
     }
 
     protected HashMap<String, String> prepareUserSuggesstionsRequestMap() {
-        HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
-//        Action:FollowSuggestions
-//        ApiUser:Test
-//        ApiPass:Test
-//        Limit:100
-//        AccountID:95
+        HashMap<String, String> result = ((NewsFeedActivity) getActivity()).prepareRequestMap();
         result.put("Action", "FollowSuggestions");
-        result.put("AccountID",currentUser.getAccountID());
+        result.put("AccountID", currentUser.getAccountID());
         result.put("Limit", "5");
         return result;
     }
 
-    private void showSortPopup(final Activity context)
-    {
-        // Inflate the popup_layout.xml
-//        LinearLayout viewGroup = (LinearLayout) context.findViewById(R.id.llSortChangePopup);
+    private void showPostPopup(final Activity context) {
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View layout = layoutInflater.inflate(R.layout.sort_popup_layout, null);
+        layout = layoutInflater.inflate(R.layout.post_popup_layout, null);
+
 
         // Creating the PopupWindow
         changeSortPopUp = new PopupWindow(context);
@@ -413,27 +379,182 @@ public class DashboardFragment extends Fragment  implements FeedAdapter.OnFeedIt
         changeSortPopUp.setHeight(LinearLayout.LayoutParams.MATCH_PARENT);
         changeSortPopUp.setFocusable(true);
 
-        // Some offset to align the popup a bit to the left, and a bit down, relative to button's position.
-        int OFFSET_X = -20;
-        int OFFSET_Y = 95;
 
         // Clear the default translucent background
         changeSortPopUp.setBackgroundDrawable(new BitmapDrawable());
-//        changeSortPopUp.setBackgroundDrawable(R.drawable.rounded_edit_text);
 
         // Displaying the popup at the specified location, + offsets.
         changeSortPopUp.showAtLocation(layout, Gravity.CENTER, 0, 0);
-
-
+        ivUserProfilePost = layout.findViewById(R.id.ivUserProfilePost);
+        String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org" + currentUser.getAccountImage();
+        Picasso.get()
+                .load(origUserProfilePhoto)
+                .placeholder(R.drawable.img_circle_placeholder)
+                .fit()
+                .into(ivUserProfilePost);
         // Getting a reference to Close button, and close the popup when clicked.
-        Button close = (Button) layout.findViewById(R.id.close);
+        ImageButton close = layout.findViewById(R.id.close);
         close.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
                 changeSortPopUp.dismiss();
             }
         });
+        Button post = (Button) layout.findViewById(R.id.post);
+        etPostText = layout.findViewById(R.id.etPostText);
+        post.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isImagePost) {
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 0 /*ignored for PNG*/, bos);
+                    byte[] bitmapdata = bos.toByteArray();
+                    RequestBody fileToSend = RequestBody.create(bitmapdata);
+                    Map<String, String> parametersMap = prepareRequestMap();
+                    parametersMap.put("Action", "AddPostHasMedia");
+                    parametersMap.put("AccountID", currentUser.getAccountID());
+                    parametersMap.put("Content", etPostText.getText().toString());
+                    parametersMap.put("Type", "S");
 
+                    Call<String> call = apiInterface.postWithImage(parametersMap,
+                            fileToSend);
+                    call.enqueue(new Callback<String>() {
+                        @Override
+                        public void onResponse(Call<String> call, Response<String> response) {
+
+                            Log.d("TAG", response.code() + "");
+
+                            String resource = response.body();
+                            if (resource != null) {
+                                System.out.println("Response" + response);
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<String> call, Throwable t) {
+                            call.cancel();
+                        }
+                    });
+
+                } else {
+                    Map<String, String> parametersMap = prepareRequestMap();
+                    parametersMap.put("Action", "AddPost");
+                    parametersMap.put("AccountID", currentUser.getAccountID());
+                    parametersMap.put("Content", etPostText.getText().toString());
+                    parametersMap.put("Type", "S");
+                    Call<String> call = apiInterface.sharePost(parametersMap);
+                    call.enqueue(new Callback<String>() {
+                        @RequiresApi(api = Build.VERSION_CODES.M)
+                        @Override
+                        public void onResponse(Call<String> call, Response<String> response) {
+                            Log.d("TAG", response.code() + "");
+                            String resource = response.body();
+                            if (resource == null || resource.contains("null")) {
+                                Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
+                            } else {
+                                changeSortPopUp.dismiss();
+                                currentPage = 0;
+                                setupFeed();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<String> call, Throwable t) {
+                            Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
+                            call.cancel();
+                        }
+                    });
+                }
+            }
+        });
+
+        ImageButton galleryButton = layout.findViewById(R.id.ibCameraButton);
+        galleryButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startDialog();
+            }
+        });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CAMERA_PIC_REQUEST && resultCode != getActivity().RESULT_CANCELED) {
+            ImageView imageView = layout.findViewById(R.id.ivPostImage);
+            bitmap = (Bitmap) data.getExtras().get("data");
+            imageView.setImageBitmap(bitmap);
+        }
+        if (requestCode == GALLERY_PICTURE_REQUEST && resultCode != getActivity().RESULT_CANCELED) {
+            Uri selectedImage = data.getData();
+
+            InputStream inputStream = null;
+
+            if (ContentResolver.SCHEME_CONTENT.equals(selectedImage.getScheme())) {
+                try {
+                    inputStream = getActivity().getContentResolver().openInputStream(selectedImage);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                if (ContentResolver.SCHEME_FILE.equals(selectedImage.getScheme())) {
+                    try {
+                        inputStream = new FileInputStream(selectedImage.getPath());
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            isImagePost = true;
+            bitmap = BitmapFactory.decodeStream(inputStream);
+            ImageView imageView = layout.findViewById(R.id.ivPostImage);
+            imageView.setImageBitmap(bitmap);
+        }
+    }
+
+    private void startDialog() {
+        AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(
+                getActivity());
+        myAlertDialog.setTitle("Upload Pictures Option");
+        myAlertDialog.setMessage("How do you want to set your picture?");
+        Method m = null;
+        try {
+            m = StrictMode.class.getMethod("disableDeathOnFileUriExposure");
+            m.invoke(null);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        myAlertDialog.setPositiveButton("Gallery",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        Intent pictureActionIntent = null;
+
+                        pictureActionIntent = new Intent(
+                                Intent.ACTION_PICK,
+                                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                        startActivityForResult(
+                                pictureActionIntent,
+                                GALLERY_PICTURE_REQUEST);
+
+                    }
+                });
+
+        myAlertDialog.setNegativeButton("Camera",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface arg0, int arg1) {
+
+                        Intent intent = new Intent(
+                                MediaStore.ACTION_IMAGE_CAPTURE);
+                        File f = new File(android.os.Environment
+                                .getExternalStorageDirectory(), "temp.jpg");
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT,
+                                Uri.fromFile(f));
+
+                        startActivityForResult(intent,
+                                CAMERA_PIC_REQUEST);
+
+                    }
+                });
+        myAlertDialog.show();
     }
 }

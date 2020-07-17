@@ -1,13 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.recyclerview.widget.RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/list"
-    android:name="com.mhossam.rocknfit.QuestionsFragment"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="16dp"
-    android:layout_marginRight="16dp"
-    app:layoutManager="LinearLayoutManager"
-    tools:context=".QuestionsFragment"
-    tools:listitem="@layout/item_question" />
+    android:background="#f8f8f8"
+    app:layout_scrollFlags="scroll|exitUntilCollapsed"
+    tools:context=".ui.activity.NewsFeedActivity">
+
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fitsSystemWindows="true">
+
+            <include
+                android:id="@+id/toolbar"
+                layout="@layout/view_feed_toolbar" />
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/list"
+            android:name="com.mhossam.rocknfit.QuestionsFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            app:layoutManager="LinearLayoutManager"
+            tools:context=".QuestionsFragment"
+            tools:listitem="@layout/item_question" />
+    </LinearLayout>
+</RelativeLayout>

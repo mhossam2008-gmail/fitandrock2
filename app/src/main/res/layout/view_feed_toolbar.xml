@@ -18,6 +18,7 @@
         android:gravity="right">
 
         <ImageButton
+            android:id="@+id/btn_search"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_margin="8dp"
@@ -25,6 +26,7 @@
             android:src="@android:drawable/ic_menu_search" />
 
         <ImageButton
+            android:id="@+id/btn_ham_menu"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_margin="8dp"

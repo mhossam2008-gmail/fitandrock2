@@ -2,7 +2,6 @@ package com.mhossam.rocknfit.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Window;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.fragment.app.Fragment;
@@ -27,27 +26,12 @@ public class NewsFeedActivity extends BaseDrawerActivity {
         setContentView(R.layout.activity_news_feed);
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                 R.id.navigation_dashboard,R.id.navigation_home, R.id.navigation_notifications)
+                 R.id.navigation_dashboard,R.id.navigation_questions, R.id.navigation_profile)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
     }
-
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-
-        // Check if the fragment is an instance of the right fragment
-        if (fragment instanceof DashboardFragment) {
-            DashboardFragment my = (DashboardFragment) fragment;
-            // Pass intent or its data to the fragment's method
-            my.onNewIntent(intent);
-        }
-
-    }
-
     public void setFragment(Fragment fragment) {
         this.fragment = fragment;
     }

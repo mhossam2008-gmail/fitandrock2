@@ -55,7 +55,7 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <LinearLayout
-            android:id="@+id/origPostRoot"
+            android:id="@+id/sharePostRoot"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
@@ -63,12 +63,12 @@
             android:visibility="gone">
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/origPostConstLayout"
+                android:id="@+id/origShareConstLayout"
                 android:layout_width="match_parent"
                 android:layout_height="75dp">
 
                 <ImageView
-                    android:id="@+id/ivOrigUserProfile"
+                    android:id="@+id/ivShareUserProfile"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     card_view:layout_constraintBottom_toBottomOf="parent"
@@ -77,26 +77,26 @@
                     card_view:layout_constraintVertical_bias="0.473" />
 
                 <TextView
-                    android:id="@+id/tvOrigProfileName"
+                    android:id="@+id/tvShareProfileName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="52dp"
                     android:layout_marginTop="25dp"
                     android:layout_marginBottom="25dp"
-                    android:layout_toEndOf="@+id/ivOrigUserProfile"
+                    android:layout_toEndOf="@+id/ivShareUserProfile"
                     android:text="TextView"
                     card_view:layout_constraintBottom_toBottomOf="parent"
-                    card_view:layout_constraintStart_toEndOf="@+id/ivOrigUserProfile"
+                    card_view:layout_constraintStart_toEndOf="@+id/ivShareUserProfile"
                     card_view:layout_constraintTop_toTopOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <com.mhossam.rocknfit.view.SquaredFrameLayout
-                android:id="@+id/vOrigImageRoot"
+                android:id="@+id/vshareImageRoot"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <ImageView
-                    android:id="@+id/ivOrigFeedCenter"
+                    android:id="@+id/ivShareFeedCenter"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop" />

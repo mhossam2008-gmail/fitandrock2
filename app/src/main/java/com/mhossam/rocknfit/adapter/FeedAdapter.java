@@ -1,20 +1,28 @@
 package com.mhossam.rocknfit.adapter;
 
+import android.app.Activity;
 import android.content.Context;
 
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.widget.LinearLayoutCompat;
 import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -29,7 +37,6 @@ import com.mhossam.rocknfit.Utils.CircleTransformation;
 import com.mhossam.rocknfit.database.AppDatabase;
 import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
-import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
 import com.mhossam.rocknfit.view.LoadingFeedItemView;
 import com.mhossam.rocknfit.view.SquaredFrameLayout;
 import com.squareup.picasso.Picasso;
@@ -42,6 +49,7 @@ import java.util.Map;
 import butterknife.BindDimen;
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import de.hdodenhof.circleimageview.CircleImageView;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -70,14 +78,14 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         apiInterface = APIClient.getClient().create(APIInterface.class);
         AppDatabase db = Room.databaseBuilder(context,
                 AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
-        currentUser  = db.loggedInUserDao().getLoggedInUser();
+        currentUser = db.loggedInUserDao().getLoggedInUser();
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_DEFAULT) {
             View view = LayoutInflater.from(context).inflate(R.layout.item_feed, parent, false);
-            CellFeedViewHolder cellFeedViewHolder = new CellFeedViewHolder(view,context);
+            CellFeedViewHolder cellFeedViewHolder = new CellFeedViewHolder(view, context);
             setupClickableViews(view, cellFeedViewHolder);
             return cellFeedViewHolder;
         } else if (viewType == VIEW_TYPE_LOADER) {
@@ -105,17 +113,6 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 onFeedItemClickListener.onMoreClick(v, cellFeedViewHolder.getAdapterPosition());
             }
         });
-//        cellFeedViewHolder.ivFeedCenter.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                int adapterPosition = cellFeedViewHolder.getAdapterPosition();
-////                feedItems.get(adapterPosition).likesCount++;
-//                notifyItemChanged(adapterPosition, ACTION_LIKE_IMAGE_CLICKED);
-//                if (context instanceof FeedActivity) {
-//                    ((FeedActivity) context).showLikedSnackbar();
-//                }
-//            }
-//        });
         cellFeedViewHolder.btnLike.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -123,36 +120,33 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                 Post currentFeedItem = feedItems.get(adapterPosition);
 
                 notifyItemChanged(adapterPosition, ACTION_LIKE_BUTTON_CLICKED);
-                if (context instanceof NewsFeedActivity) {
 
-                    Map<String, String> parametersMap = prepareRequestMap();
-                    parametersMap.put("Action","LikePost");
-                    parametersMap.put("PostID",currentFeedItem.getPostID());
-                    parametersMap.put("AccountID",currentUser.getAccountID());
-                    Call<String> call = apiInterface.likePost(parametersMap);
-                    call.enqueue(new Callback<String>() {
-                        @Override
-                        public void onResponse(Call<String> call, Response<String> response) {
-                            Log.d("TAG", response.code() + "");
-                            String resource = response.body();
-                            if(resource==null || resource.contains("null")) {
-                                Toast.makeText(context, "Liked", Toast.LENGTH_SHORT).show();
-                                currentFeedItem.setLikesCounter(currentFeedItem.getLikesCounter()+1);
-                                currentFeedItem.setLikeID("liked");
-                                notifyItemChanged(adapterPosition);
-                            }else{
-                                Toast.makeText(context, resource, Toast.LENGTH_SHORT).show();
-                            }
+                Map<String, String> parametersMap = prepareRequestMap();
+                parametersMap.put("Action", "LikePost");
+                parametersMap.put("PostID", currentFeedItem.getPostID());
+                parametersMap.put("AccountID", currentUser.getAccountID());
+                Call<String> call = apiInterface.likePost(parametersMap);
+                call.enqueue(new Callback<String>() {
+                    @Override
+                    public void onResponse(Call<String> call, Response<String> response) {
+                        Log.d("TAG", response.code() + "");
+                        String resource = response.body();
+                        if (resource == null || resource.contains("null")) {
+                            Toast.makeText(context, "Liked", Toast.LENGTH_SHORT).show();
+                            currentFeedItem.setLikesCounter(currentFeedItem.getLikesCounter() + 1);
+                            currentFeedItem.setLikeID("liked");
+                            notifyItemChanged(adapterPosition);
+                        } else {
+                            Toast.makeText(context, resource, Toast.LENGTH_SHORT).show();
                         }
+                    }
 
-                        @Override
-                        public void onFailure(Call<String> call, Throwable t) {
-                            Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
-                            call.cancel();
-                        }
-                    });
-//                    ((FeedActivity) context).showLikedSnackbar();
-                }
+                    @Override
+                    public void onFailure(Call<String> call, Throwable t) {
+                        Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
+                        call.cancel();
+                    }
+                });
             }
         });
 
@@ -161,38 +155,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             public void onClick(View v) {
                 int adapterPosition = cellFeedViewHolder.getAdapterPosition();
                 Post currentFeedItem = feedItems.get(adapterPosition);
-
-                if (context instanceof NewsFeedActivity) {
-
-                    Map<String, String> parametersMap = prepareRequestMap();
-                    parametersMap.put("Action","SharePost");
-                    parametersMap.put("AccountID",currentUser.getAccountID());
-                    parametersMap.put("PostID",currentFeedItem.getPostID());
-                    parametersMap.put("Text","Sample Text");
-                    Call<String> call = apiInterface.likePost(parametersMap);
-                    call.enqueue(new Callback<String>() {
-                        @Override
-                        public void onResponse(Call<String> call, Response<String> response) {
-                            Log.d("TAG", response.code() + "");
-                            String resource = response.body();
-                            if(resource==null || resource.contains("null")) {
-                                Toast.makeText(context, "Liked", Toast.LENGTH_SHORT).show();
-                                currentFeedItem.setLikesCounter(currentFeedItem.getLikesCounter()+1);
-                                currentFeedItem.setLikeID("liked");
-                                notifyItemChanged(adapterPosition);
-                            }else{
-                                Toast.makeText(context, resource, Toast.LENGTH_SHORT).show();
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(Call<String> call, Throwable t) {
-                            Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
-                            call.cancel();
-                        }
-                    });
-//                    ((FeedActivity) context).showLikedSnackbar();
-                }
+                showSharePopup(currentFeedItem);
             }
         });
 
@@ -204,6 +167,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             }
         });
     }
+
     public HashMap<String, String> prepareRequestMap() {
         HashMap<String, String> result = new HashMap<>();
         result.put("ApiUser", "Test");
@@ -221,6 +185,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             bindLoadingFeedItem((LoadingCellFeedViewHolder) viewHolder);
         }
     }
+
     private void bindLoadingFeedItem(final LoadingCellFeedViewHolder holder) {
         holder.loadingFeedItemView.setOnLoadingFinishedListener(new LoadingFeedItemView.OnLoadingFinishedListener() {
             @Override
@@ -246,13 +211,13 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return feedItems.size();
     }
 
-    public void updateItems(boolean animated , List<Post> updatedFeedItems) {
-        updateItems(animated,updatedFeedItems,false);
+    public void updateItems(boolean animated, List<Post> updatedFeedItems) {
+        updateItems(animated, updatedFeedItems, false);
     }
 
 
-    public void updateItems(boolean animated , List<Post> updatedFeedItems, boolean keepOldItems) {
-        if(!keepOldItems){
+    public void updateItems(boolean animated, List<Post> updatedFeedItems, boolean keepOldItems) {
+        if (!keepOldItems) {
             feedItems.clear();
         }
         feedItems.addAll(updatedFeedItems);
@@ -272,7 +237,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         notifyItemChanged(0);
     }
 
-    public Post getPostAtPosition(int position){
+    public Post getPostAtPosition(int position) {
         return feedItems.get(position);
     }
 
@@ -314,20 +279,22 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         @BindView(R.id.tvShareCount)
         TextView shareCount;
 
-        @BindView(R.id.tvOrigProfileName)
+        @BindView(R.id.tvShareProfileName)
         TextView origProfileName;
-        @BindView(R.id.ivOrigFeedCenter)
+        @BindView(R.id.ivShareFeedCenter)
         ImageView origFeedCenter;
         @BindView(R.id.origPlayIcon)
         ImageView origPlayIcon;
-        @BindView(R.id.ivOrigUserProfile)
+        @BindView(R.id.ivShareUserProfile)
         ImageView origProfilePhoto;
-        @BindView(R.id.vOrigImageRoot)
+        @BindView(R.id.vshareImageRoot)
         SquaredFrameLayout origRoot;
-        @BindView(R.id.origPostConstLayout)
+        @BindView(R.id.origShareConstLayout)
         ConstraintLayout origPostConstLayout;
-        @BindView(R.id.origPostRoot)
+        @BindView(R.id.sharePostRoot)
         LinearLayout origPostRoot;
+        @BindView(R.id.tvOrigPost)
+        TextView origPost;
 
         @BindDimen(R.dimen.global_menu_avatar_size)
         int avatarSize;
@@ -342,52 +309,41 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         public void bindView(Post feedItem) {
             this.feedItem = feedItem;
-            if(!feedItem.getOriginalPostID().equals("0")&&feedItem.getPostType().equalsIgnoreCase("h")){
+            if (!feedItem.getOriginalPostID().equals("0") && feedItem.getPostType().equalsIgnoreCase("h")) {
 
                 vImageRoot.setVisibility(View.GONE);
 
                 origPostRoot.setVisibility(View.VISIBLE);
 
-                String origUserProfilePhoto = "https://www.fitandrock.com/"+feedItem.getOrgPicturePath();
+                String origUserProfilePhoto = "https://www.fitandrock.com/" + feedItem.getOrgPicturePath();
                 String origName = feedItem.getOrgName();
                 origProfileName.setText(origName);
                 Picasso.get()
                         .load(origUserProfilePhoto)
                         .placeholder(R.drawable.img_circle_placeholder)
                         .centerCrop()
-                        .resize(avatarSize,avatarSize)
+                        .resize(avatarSize, avatarSize)
                         .transform(new CircleTransformation())
                         .into(origProfilePhoto);
-
-//                origProfilePhoto.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//                        Intent i = new Intent(context, ProfileActivity.class);
-//                        i.putExtra("AccountID",feedItem.get());
-//                        context.startActivity(i);
-//                    }
-//                });
-
+                origPost.setText(feedItem.getPostContent());
+                postTextView.setVisibility(View.GONE);
                 origPlayIcon.setVisibility(View.GONE);
-                if(feedItem.getPostMedia() == null || feedItem.getPostMedia().equals("")){
+                if (feedItem.getPostMedia() == null || feedItem.getPostMedia().equals("")) {
                     origRoot.setVisibility(View.GONE);
-                }else if(feedItem.getPostMedia() instanceof String &&((String) feedItem.getPostMedia()).contains("youtube")){
-                    String postPhoto = ((String) feedItem.getPostMedia()).replace("www.youtube.com/watch?v=","img.youtube.com/vi/");
-                    postPhoto+="/mqdefault.jpg";
+                } else if (feedItem.getPostMedia() instanceof String && ((String) feedItem.getPostMedia()).contains("youtube")) {
+                    String postPhoto = ((String) feedItem.getPostMedia()).replace("www.youtube.com/watch?v=", "img.youtube.com/vi/");
+                    postPhoto += "/mqdefault.jpg";
 
                     Picasso.get()
                             .load(postPhoto)
                             .placeholder(R.drawable.img_circle_placeholder)
                             .fit()
-//                        .centerCrop()
-//                        .resize(avatarSize,avatarSize)
-//                        .transform(new SquareTransformation())
                             .into(origFeedCenter);
                     origPlayIcon.setVisibility(View.VISIBLE);
                     origFeedCenter.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String) feedItem.getPostMedia()));
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             intent.setPackage("com.google.android.youtube");
                             context.startActivity(intent);
@@ -396,49 +352,42 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     origPlayIcon.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String) feedItem.getPostMedia()));
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             intent.setPackage("com.google.android.youtube");
                             context.startActivity(intent);
                         }
                     });
-                }
-                else{
-                    String postPhoto = "https://www.fitandrock.com"+feedItem.getFullImagePath();
+                } else {
+                    String postPhoto = "https://www.fitandrock.com" + feedItem.getFullImagePath();
 
                     Picasso.get()
                             .load(postPhoto)
                             .placeholder(R.drawable.img_circle_placeholder)
                             .fit()
-//                        .centerCrop()
-//                        .resize(avatarSize,avatarSize)
-//                        .transform(new SquareTransformation())
                             .into(origFeedCenter);
                 }
 
-            }else{
+            } else {
                 origPostRoot.setVisibility(View.GONE);
                 vImageRoot.setVisibility(View.VISIBLE);
                 playIcon.setVisibility(View.GONE);
-                if(feedItem.getPostMedia() == null || feedItem.getPostMedia().equals("")){
+                if (feedItem.getPostMedia() == null || feedItem.getPostMedia().equals("")) {
                     vImageRoot.setVisibility(View.GONE);
-                }else if(feedItem.getPostMedia() instanceof String &&((String) feedItem.getPostMedia()).contains("youtube")){
-                    String postPhoto = ((String) feedItem.getPostMedia()).replace("www.youtube.com/watch?v=","img.youtube.com/vi/");
-                    postPhoto+="/mqdefault.jpg";
+                } else if (feedItem.getPostMedia() instanceof String && ((String) feedItem.getPostMedia()).contains("youtube")) {
+                    String postPhoto = ((String) feedItem.getPostMedia()).replace("www.youtube.com/watch?v=", "img.youtube.com/vi/");
+                    postPhoto += "/mqdefault.jpg";
 
                     Picasso.get()
                             .load(postPhoto)
                             .placeholder(R.drawable.img_circle_placeholder)
                             .fit()
-//                        .centerCrop()
-//                        .resize(avatarSize,avatarSize)
-//                        .transform(new SquareTransformation())
                             .into(ivFeedCenter);
                     playIcon.setVisibility(View.VISIBLE);
                     ivFeedCenter.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String) feedItem.getPostMedia()));
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             intent.setPackage("com.google.android.youtube");
                             context.startActivity(intent);
@@ -447,54 +396,47 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     playIcon.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String)feedItem.getPostMedia()));
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse((String) feedItem.getPostMedia()));
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             intent.setPackage("com.google.android.youtube");
                             context.startActivity(intent);
                         }
                     });
-                }
-                else{
-                    String postPhoto = "https://www.fitandrock.com"+feedItem.getFullImagePath();
+                } else {
+                    String postPhoto = "https://www.fitandrock.com" + feedItem.getFullImagePath();
 
                     Picasso.get()
                             .load(postPhoto)
                             .placeholder(R.drawable.img_circle_placeholder)
                             .fit()
-//                        .centerCrop()
-//                        .resize(avatarSize,avatarSize)
-//                        .transform(new SquareTransformation())
                             .into(ivFeedCenter);
                 }
             }
             int adapterPosition = getAdapterPosition();
-            String profilePhoto = "https://www.fitandrock.com"+feedItem.getProfilePicturePath();
+            String profilePhoto = "https://www.fitandrock.com" + feedItem.getProfilePicturePath();
 
             Picasso.get()
-                .load(profilePhoto)
-                .placeholder(R.drawable.img_circle_placeholder)
-                .centerCrop()
-                .resize(avatarSize,avatarSize)
+                    .load(profilePhoto)
+                    .placeholder(R.drawable.img_circle_placeholder)
+                    .centerCrop()
+                    .resize(avatarSize, avatarSize)
                     .transform(new CircleTransformation())
-                .into(ivUserProfile);
+                    .into(ivUserProfile);
             ivUserProfile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent i = new Intent(context, ProfileActivity.class);
-                    i.putExtra("AccountID",feedItem.getAccountID());
+                    i.putExtra("AccountID", feedItem.getAccountID());
                     context.startActivity(i);
                 }
             });
             commentsCount.setText(feedItem.getCommentsCounter());
-            likesCount.setText(feedItem.getLikesCounter()+"");
+            likesCount.setText(feedItem.getLikesCounter() + "");
             shareCount.setText(feedItem.getShareCounter());
             tvProfileName.setText(feedItem.getAccountFullName());
             postTextView.setText(feedItem.getPostContent());
-            btnLike.setImageResource(!(feedItem.getLikeID()==null ||
+            btnLike.setImageResource(!(feedItem.getLikeID() == null ||
                     feedItem.getLikeID().isEmpty()) ? R.drawable.ic_heart_red : R.drawable.ic_heart_outline_grey);
-//            tsLikesCounter.setCurrentText(vImageRoot.getResources().getQuantityString(
-//                    R.plurals.likes_count, feedItem.getLikesCounter(), feedItem.getLikesCounter()
-//            ));
         }
 
         public Post getFeedItem() {
@@ -536,4 +478,106 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         void onProfileClick(View v);
     }
+
+
+    private void showSharePopup(Post sharedPost) {
+        LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = layoutInflater.inflate(R.layout.post_share_popup_layout, null);
+
+
+        // Creating the PopupWindow
+        PopupWindow changeSortPopUp = new PopupWindow(context);
+        changeSortPopUp.setContentView(layout);
+        changeSortPopUp.setWidth(LinearLayout.LayoutParams.MATCH_PARENT);
+        changeSortPopUp.setHeight(LinearLayout.LayoutParams.MATCH_PARENT);
+        changeSortPopUp.setFocusable(true);
+
+
+        // Clear the default translucent background
+        changeSortPopUp.setBackgroundDrawable(new BitmapDrawable());
+
+        // Displaying the popup at the specified location, + offsets.
+        changeSortPopUp.showAtLocation(layout, Gravity.CENTER, 0, 0);
+        CircleImageView ivUserProfilePost = layout.findViewById(R.id.ivUserProfilePost);
+        String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org" + currentUser.getAccountImage();
+        Picasso.get()
+                .load(origUserProfilePhoto)
+                .placeholder(R.drawable.img_circle_placeholder)
+                .fit()
+                .into(ivUserProfilePost);
+
+        ImageView sharedPostImage = layout.findViewById(R.id.ivShareFeedCenter);
+        CircleImageView sharedPostOwnerImage = layout.findViewById(R.id.ivShareUserProfile);
+        TextView sharedPostName = layout.findViewById(R.id.tvShareProfileName);
+        sharedPostName.setText(sharedPost.getAccountFullName());
+        TextView postContent = layout.findViewById(R.id.tvOrigPost);
+        postContent.setText(sharedPost.getPostContent());
+        String shareUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org" + sharedPost.getAccountImage();
+        Picasso.get()
+                .load(origUserProfilePhoto)
+                .placeholder(R.drawable.img_circle_placeholder)
+                .fit()
+                .into(sharedPostOwnerImage);
+        SquaredFrameLayout squaredFrameLayout = layout.findViewById(R.id.vshareImageRoot);
+        squaredFrameLayout.setVisibility(View.GONE);
+        if(sharedPost.getFullImagePath()!=null&& !sharedPost.getFullImagePath().trim().endsWith("/")){
+//            SquaredFrameLayout squaredFrameLayout = layout.findViewById(R.id.vshareImageRoot);
+            squaredFrameLayout.setVisibility(View.VISIBLE);
+
+            String postPhoto = "https://www.fitandrock.com" + sharedPost.getFullImagePath();
+
+            Picasso.get()
+                    .load(postPhoto)
+                    .placeholder(R.drawable.img_circle_placeholder)
+                    .fit()
+                    .centerCrop()
+                    .into(sharedPostImage);
+
+        }
+        // Getting a reference to Close button, and close the popup when clicked.
+
+        ImageButton close = layout.findViewById(R.id.close);
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeSortPopUp.dismiss();
+            }
+        });
+        Button post = (Button) layout.findViewById(R.id.post);
+        EditText etPostText = layout.findViewById(R.id.etPostText);
+        post.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Map<String, String> parametersMap = prepareRequestMap();
+                parametersMap.put("Action", "SharePost");
+                parametersMap.put("AccountID", currentUser.getAccountID());
+                parametersMap.put("PostID", sharedPost.getPostID());
+                parametersMap.put("Content", etPostText.getText().toString());
+                parametersMap.put("Type", "S");
+                Call<String> call = apiInterface.sharePost(parametersMap);
+                call.enqueue(new Callback<String>() {
+                    @RequiresApi(api = Build.VERSION_CODES.M)
+                    @Override
+                    public void onResponse(Call<String> call, Response<String> response) {
+                        Log.d("TAG", response.code() + "");
+                        String resource = response.body();
+                        if (resource == null || resource.contains("null")) {
+                            Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
+                        } else {
+                            changeSortPopUp.dismiss();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<String> call, Throwable t) {
+                        Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
+                        call.cancel();
+                    }
+                });
+
+            }
+        });
+    }
+
+
 }

@@ -6,7 +6,7 @@
     app:startDestination="@+id/navigation_dashboard">
 
     <fragment
-        android:id="@+id/navigation_home"
+        android:id="@+id/navigation_questions"
         android:name="com.mhossam.rocknfit.QuestionsFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_questions_list" />
@@ -18,8 +18,8 @@
         tools:layout="@layout/fragment_dashboard" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
+        android:id="@+id/navigation_profile"
         android:name="com.mhossam.rocknfit.ui.notifications.ProfileFragment"
-        android:label="@string/title_notifications"
+        android:label="@string/title_profile"
         tools:layout="@layout/fragment_notifications" />
 </navigation>
