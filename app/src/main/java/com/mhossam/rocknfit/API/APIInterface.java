@@ -1,6 +1,9 @@
 package com.mhossam.rocknfit.API;
 
 import com.mhossam.rocknfit.model.AccountInfo;
+import com.mhossam.rocknfit.model.Country;
+import com.mhossam.rocknfit.model.District;
+import com.mhossam.rocknfit.model.Governorate;
 import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.model.PostComment;
@@ -93,8 +96,18 @@ public interface APIInterface {
     Call<String> postWithImage(@PartMap Map<String,String> params,
                                @Part("Media")RequestBody file);
 
-//    @GET("/api/users?")
-//    Call<UserList> doGetUserList(@Query("page") String page);
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<Map<String, Country>> getCountries(@FieldMap Map<String, String> params);
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<Map<String, Governorate>> getGovernerates(@FieldMap Map<String, String> params);
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<Map<String, District>> getDistricts(@FieldMap Map<String, String> params);
+
 
 //    @FormUrlEncoded
 //    @POST("/api/users?")

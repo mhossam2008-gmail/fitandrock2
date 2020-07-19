@@ -16,6 +16,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.room.Room;
 
 import com.google.android.material.navigation.NavigationView;
+import com.mhossam.rocknfit.EditProfileActivity;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.CircleTransformation;
 import com.mhossam.rocknfit.database.AppDatabase;
@@ -64,7 +65,8 @@ public class BaseDrawerActivity extends BaseActivity {
                     startActivity(i);
                     finish();
                 }else if(id==R.id.menu_profile_edit){
-                    Toast.makeText(BaseDrawerActivity.this, "Under development", Toast.LENGTH_SHORT).show();
+                    Intent i = new Intent(BaseDrawerActivity.this, EditProfileActivity.class);
+                    startActivity(i);
                 }
                 return true;
             }
