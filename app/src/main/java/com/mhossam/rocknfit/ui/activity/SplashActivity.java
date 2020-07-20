@@ -1,15 +1,14 @@
 package com.mhossam.rocknfit.ui.activity;
 
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.room.Room;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.room.Room;
 
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
@@ -54,7 +53,7 @@ public class SplashActivity extends BaseActivity {
                 @Override
                 public void run() {
                     /* Create an Intent that will start the Menu-Activity. */
-                    Intent mainIntent = new Intent(SplashActivity.this, LoginActivity.class);
+                    Intent mainIntent = new Intent(SplashActivity.this, MainActivity.class);
                     SplashActivity.this.startActivity(mainIntent);
                     SplashActivity.this.finish();
                 }
