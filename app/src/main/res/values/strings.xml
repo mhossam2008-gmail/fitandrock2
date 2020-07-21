@@ -28,4 +28,6 @@
     <string name="tick_mark">✓</string>
     <string name="reg_success">Please Check Your Mail!</string>
     <string name="update_profile">Update Profile</string>
+    <string name="send_password_email">Reset Password</string>
+    <string name="forget_password_title">Reset Password</string>
 </resources>

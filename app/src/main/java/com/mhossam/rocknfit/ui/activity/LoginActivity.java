@@ -6,11 +6,13 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.room.Room;
 
+import com.mhossam.rocknfit.ForgetPasswordActivity;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
 import com.mhossam.rocknfit.database.AppDatabase;
@@ -34,6 +36,8 @@ public class LoginActivity extends BaseAppCompatActivity {
     EditText username;
     @BindView(R.id.passwordEditText)
     EditText password;
+    @BindView(R.id.goToForgetPasswordTV)
+    TextView goToForgetPasswordTV;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +46,13 @@ public class LoginActivity extends BaseAppCompatActivity {
         actionBar.hide();
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
+        goToForgetPasswordTV.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(LoginActivity.this, ForgetPasswordActivity.class);
+                startActivity(i);
+            }
+        });
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

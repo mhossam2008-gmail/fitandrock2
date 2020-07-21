@@ -406,7 +406,10 @@ public class EditProfileActivity extends BaseDrawerActivity {
                     AppDatabase db = Room.databaseBuilder(getApplicationContext(),
                             AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
                     db.loggedInUserDao().insertAll(resource.get("1"));
-                    db.close();
+                    finish();
+                    overridePendingTransition(0, 0);
+                    startActivity(getIntent());
+                    overridePendingTransition(0, 0);
                 } else {
                     Toast.makeText(EditProfileActivity.this, "Internal Server Error", Toast.LENGTH_SHORT).show();
                 }
@@ -474,8 +477,9 @@ public class EditProfileActivity extends BaseDrawerActivity {
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);
+//        File storageDir = Environment.getExternalStoragePublicDirectory(
+//                Environment.DIRECTORY_PICTURES);
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */

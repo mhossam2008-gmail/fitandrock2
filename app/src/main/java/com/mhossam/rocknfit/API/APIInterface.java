@@ -110,6 +110,10 @@ public interface APIInterface {
     @POST("MobAPIs/MobAPIs.php")
     Call<Map<String, District>> getDistricts(@FieldMap Map<String, String> params);
 
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<String> forgetPassword(@FieldMap Map<String, String> parametersMap);
+
 
 //    @FormUrlEncoded
 //    @POST("/api/users?")

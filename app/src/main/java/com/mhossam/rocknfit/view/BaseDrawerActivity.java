@@ -8,8 +8,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Switch;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -18,13 +16,10 @@ import androidx.room.Room;
 import com.google.android.material.navigation.NavigationView;
 import com.mhossam.rocknfit.EditProfileActivity;
 import com.mhossam.rocknfit.R;
-import com.mhossam.rocknfit.Utils.CircleTransformation;
 import com.mhossam.rocknfit.database.AppDatabase;
-import com.mhossam.rocknfit.ui.activity.LoginActivity;
-import com.squareup.picasso.Picasso;
+import com.mhossam.rocknfit.ui.activity.MainActivity;
 
 import butterknife.BindDimen;
-import butterknife.BindString;
 import butterknife.BindView;
 
 /**
@@ -61,7 +56,7 @@ public class BaseDrawerActivity extends BaseActivity {
                 int id=item.getItemId();
                 if(id==R.id.menu_logout){
                     db.loggedInUserDao().delete();
-                    Intent i = new Intent(BaseDrawerActivity.this, LoginActivity.class);
+                    Intent i = new Intent(BaseDrawerActivity.this, MainActivity.class);
                     startActivity(i);
                     finish();
                 }else if(id==R.id.menu_profile_edit){
