@@ -1,14 +1,23 @@
 package com.mhossam.rocknfit;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.room.Room;
 
+import android.Manifest;
+import android.content.ContentResolver;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.Environment;
+import android.os.StrictMode;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -23,24 +32,35 @@ import com.mhossam.rocknfit.model.Country;
 import com.mhossam.rocknfit.model.District;
 import com.mhossam.rocknfit.model.Governorate;
 import com.mhossam.rocknfit.model.LoggedInUser;
-import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
-import com.mhossam.rocknfit.ui.activity.RegisterationSuccessActivity;
-import com.mhossam.rocknfit.ui.activity.SignupActivity;
-import com.mhossam.rocknfit.ui.activity.SplashActivity;
 import com.mhossam.rocknfit.view.BaseDrawerActivity;
 import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.RuntimePermissions;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-
+@RuntimePermissions
 public class EditProfileActivity extends BaseDrawerActivity {
 
     @BindView(R.id.sCountry)
@@ -97,6 +117,14 @@ public class EditProfileActivity extends BaseDrawerActivity {
     private District[] districts;
     private AppDatabase db;
     private LoggedInUser loggedInUser;
+    private int GALLERY_PICTURE_PROFILE_REQUEST = 0;
+    private int GALLERY_PICTURE_BANNER_REQUEST = 2;
+
+    private String mCurrentPhotoPath;
+    private int CAMERA_PIC_PROFILE_REQUEST = 1;
+    private int CAMERA_PIC_BANNER_REQUEST = 3;
+    private File photoFile;
+    private Bitmap bitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,7 +184,18 @@ public class EditProfileActivity extends BaseDrawerActivity {
                 .load(coverPhoto)
                 .fit()
                 .into(banner);
-
+        banner.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startDialog(false);
+            }
+        });
+        ivUserProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startDialog(true);
+            }
+        });
         Picasso.get()
                 .load(origUserProfilePhoto)
                 .placeholder(R.drawable.img_circle_placeholder)
@@ -378,5 +417,202 @@ public class EditProfileActivity extends BaseDrawerActivity {
                 call.cancel();
             }
         });
+    }
+
+    @NeedsPermission({Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE})
+    void startDialog(boolean isProfile) {
+        AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(
+                EditProfileActivity.this);
+        myAlertDialog.setTitle("Upload Pictures Option");
+        myAlertDialog.setMessage("How do you want to set your picture?");
+        Method m = null;
+        try {
+            m = StrictMode.class.getMethod("disableDeathOnFileUriExposure");
+            m.invoke(null);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
+        myAlertDialog.setPositiveButton("Gallery",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        Intent pictureActionIntent = null;
+
+                        pictureActionIntent = new Intent(
+                                Intent.ACTION_PICK,
+                                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                        int galleryRequestCode = GALLERY_PICTURE_PROFILE_REQUEST;
+                        if(!isProfile){
+                            galleryRequestCode = GALLERY_PICTURE_BANNER_REQUEST;
+                        }
+                        startActivityForResult(
+                                pictureActionIntent,
+                                galleryRequestCode);
+
+                    }
+                });
+
+        myAlertDialog.setNegativeButton("Camera",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface arg0, int arg1) {
+
+                        dispatchTakePictureIntent(isProfile);
+
+                    }
+                });
+        myAlertDialog.show();
+    }
+//
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        // NOTE: delegate the permission handling to generated method
+//        DashboardFragmentPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+//    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        return image;
+    }
+
+
+    private void dispatchTakePictureIntent(boolean isProfile) {
+
+        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        try {
+            photoFile = createImageFile();
+            takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+            int cameraRequestCode = CAMERA_PIC_PROFILE_REQUEST;
+            if(!isProfile){
+                cameraRequestCode =     CAMERA_PIC_BANNER_REQUEST;
+            }
+            startActivityForResult(takePhotoIntent, cameraRequestCode);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void uploadImage(int requestCode) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100 /*ignored for PNG*/, bos);
+        byte[] bitmapdata = bos.toByteArray();
+//                    RequestBody fileToSend = RequestBody.create(bitmapdata);
+        // create RequestBody instance from file
+        RequestBody requestFile =
+                RequestBody.create(MediaType.parse("image/*"),
+                        bitmapdata
+                );
+
+        // MultipartBody.Part is used to send also the actual file name
+        MultipartBody.Part body =
+                MultipartBody.Part.createFormData("AccountImage", "Media", requestFile);
+
+        Map<String, String> parametersMap = prepareRequestMap();
+        if(requestCode == CAMERA_PIC_PROFILE_REQUEST || requestCode == GALLERY_PICTURE_PROFILE_REQUEST){
+            parametersMap.put("Action", "UpdateAccountImage");
+        }else {
+            parametersMap.put("Action", "UpdateAccountCoverImage");
+        }
+
+        parametersMap.put("AccountID", loggedInUser.getAccountID());
+
+        HashMap<String, RequestBody> requestBodyMap = new HashMap<>();
+        for (Map.Entry<String, String> pair : parametersMap.entrySet()) {
+            RequestBody currentField =
+                    RequestBody.create(
+                            okhttp3.MultipartBody.FORM, pair.getValue());
+            requestBodyMap.put(pair.getKey(), currentField);
+        }
+
+        Call<String> call = apiInterface.postWithImage(requestBodyMap,
+                body);
+        call.enqueue(new Callback<String>() {
+            @Override
+            public void onResponse(Call<String> call, Response<String> response) {
+
+                Log.d("TAG", response.code() + "");
+
+                String resource = response.body();
+                if (resource != null) {
+                    Toast.makeText(EditProfileActivity.this, "Image Updated Successfully", Toast.LENGTH_SHORT).show();
+                    updateProfileFromServer();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+                call.cancel();
+            }
+        });
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if ((requestCode == CAMERA_PIC_PROFILE_REQUEST || requestCode == CAMERA_PIC_BANNER_REQUEST) && resultCode == RESULT_OK) {
+            ImageView imageView = ivUserProfile;
+            if(requestCode==CAMERA_PIC_BANNER_REQUEST){
+                imageView = banner;
+            }
+            // set the dimensions of the image
+            int targetW =imageView.getWidth();
+            int targetH = imageView.getHeight();
+
+            // Get the dimensions of the bitmap
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bmOptions.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(photoFile.getAbsolutePath(), bmOptions);
+            int photoW = bmOptions.outWidth;
+            int photoH = bmOptions.outHeight;
+
+            // Determine how much to scale down the image
+            int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+
+            // Decode the image file into a Bitmap sized to fill the View
+            bmOptions.inJustDecodeBounds = false;
+            bmOptions.inSampleSize = scaleFactor;
+            bmOptions.inPurgeable = true;
+
+            // stream = getContentResolver().openInputStream(data.getData());
+            bitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath(),bmOptions);
+            imageView.setImageBitmap(bitmap);
+            uploadImage(requestCode);
+        }
+        if ((requestCode == GALLERY_PICTURE_PROFILE_REQUEST ||
+                requestCode == GALLERY_PICTURE_BANNER_REQUEST ) && resultCode == RESULT_OK) {
+            Uri selectedImage = data.getData();
+
+            InputStream inputStream = null;
+
+            if (ContentResolver.SCHEME_CONTENT.equals(selectedImage.getScheme())) {
+                try {
+                    inputStream = getContentResolver().openInputStream(selectedImage);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                if (ContentResolver.SCHEME_FILE.equals(selectedImage.getScheme())) {
+                    try {
+                        inputStream = new FileInputStream(selectedImage.getPath());
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            bitmap = BitmapFactory.decodeStream(inputStream);
+            uploadImage(requestCode);
+        }
+
     }
 }
