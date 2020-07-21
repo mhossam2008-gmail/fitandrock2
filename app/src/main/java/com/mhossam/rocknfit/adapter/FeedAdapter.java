@@ -88,7 +88,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_DEFAULT) {
             View view = LayoutInflater.from(context).inflate(R.layout.item_feed, parent, false);
-            CellFeedViewHolder cellFeedViewHolder = new CellFeedViewHolder(view, context);
+            CellFeedViewHolder cellFeedViewHolder = new CellFeedViewHolder(view, context , currentUser);
             setupClickableViews(view, cellFeedViewHolder);
             return cellFeedViewHolder;
         } else if (viewType == VIEW_TYPE_LOADER) {
@@ -97,7 +97,7 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT)
             );
-            return new LoadingCellFeedViewHolder(view, context);
+            return new LoadingCellFeedViewHolder(view, context, currentUser);
         }
 
         return null;
@@ -214,6 +214,12 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return feedItems.size();
     }
 
+    public void deleteItem(int pos){
+        feedItems.remove(pos);
+        notifyItemRemoved(pos);
+    }
+
+
     public void updateItems(boolean animated, List<Post> updatedFeedItems) {
         updateItems(animated, updatedFeedItems, false);
     }
@@ -305,15 +311,18 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         @BindView(R.id.tvPostDate)
         TextView tvPostDate;
 
+        private LoggedInUser currentLoggedInUser;
+
         @BindDimen(R.dimen.global_menu_avatar_size)
         int avatarSize;
 
         Post feedItem;
 
-        public CellFeedViewHolder(View view, Context context) {
+        public CellFeedViewHolder(View view, Context context , LoggedInUser currentLoggedInUser) {
             super(view);
             ButterKnife.bind(this, view);
             this.context = context;
+            this.currentLoggedInUser = currentLoggedInUser;
         }
 
         public void bindView(Post feedItem) {
@@ -321,6 +330,11 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
             tvPostAction.setText(" shared");
             tvPostType.setText(" Status");
 //            2020-07-17 15:52:38
+            if(currentLoggedInUser.getAccountID().equals(feedItem.getAccountID())){
+                btnMore.setVisibility(View.VISIBLE);
+            }else{
+                btnMore.setVisibility(View.INVISIBLE);
+            }
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             try {
                 Date date = dateFormat.parse(feedItem.getCreationDate());
@@ -473,8 +487,8 @@ public class FeedAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private final Context context;
         LoadingFeedItemView loadingFeedItemView;
 
-        public LoadingCellFeedViewHolder(LoadingFeedItemView view, Context context) {
-            super(view, context);
+        public LoadingCellFeedViewHolder(LoadingFeedItemView view, Context context,LoggedInUser currentLoggedInUser) {
+            super(view, context, currentLoggedInUser);
             this.loadingFeedItemView = view;
             this.context = context;
         }

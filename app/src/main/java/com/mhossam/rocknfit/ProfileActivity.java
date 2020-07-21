@@ -259,7 +259,7 @@ public class ProfileActivity extends BaseActivity implements FeedAdapter.OnFeedI
     }
 
     @Override
-    public void onReportClick(int feedItem) {
+    public void onDeleteClick(int feedItem) {
         FeedContextMenuManager.getInstance().hideContextMenu();
     }
 

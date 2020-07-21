@@ -38,10 +38,10 @@
             <com.mhossam.rocknfit.view.SendCommentButton
                 android:id="@+id/btnSendComment"
                 android:layout_width="72dp"
-                android:layout_height="match_parent"
+                android:layout_height="51dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginBottom="2dp"
-                android:background="@drawable/btn_send_comment"
+                android:background="@drawable/orange_shape_button"
                 android:elevation="4dp"
                 android:orientation="vertical" />
 

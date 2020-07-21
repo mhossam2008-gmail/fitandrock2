@@ -44,6 +44,7 @@ import androidx.room.Room;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
+import com.mhossam.rocknfit.ForgetPasswordActivity;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.LinearLayoutManagerWrapper;
 import com.mhossam.rocknfit.adapter.FeedAdapter;
@@ -55,6 +56,7 @@ import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.ui.activity.CommentsActivity;
 import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
+import com.mhossam.rocknfit.ui.activity.RegisterationSuccessActivity;
 import com.mhossam.rocknfit.view.FeedContextMenu;
 import com.mhossam.rocknfit.view.FeedContextMenuManager;
 import com.squareup.picasso.Picasso;
@@ -334,7 +336,30 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
     }
 
     @Override
-    public void onReportClick(int feedItem) {
+    public void onDeleteClick(int pos) {
+        Post currentItem = feedAdapter.getPostAtPosition(pos);
+        if(currentItem.getAccountID().equals(currentUser.getAccountID())){
+            Map<String,String> requestMap = prepareRequestMap();
+            requestMap.put("PostID",currentItem.getPostID());
+            requestMap.put("AccountID",currentUser.getAccountID());
+            requestMap.put("Action","DeletePost");
+            Call<String> call = apiInterface.deletePost(requestMap);
+
+            call.enqueue(new Callback<String>() {
+                @Override
+                public void onResponse(Call<String> call, Response<String> response) {
+
+                    Log.d("TAG", response.code() + "");
+
+                    feedAdapter.deleteItem(pos);
+                }
+
+                @Override
+                public void onFailure(Call<String> call, Throwable t) {
+                    call.cancel();
+                }
+            });
+        }
         FeedContextMenuManager.getInstance().hideContextMenu();
     }
 
@@ -646,4 +671,5 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
             e.printStackTrace();
         }
     }
+
 }

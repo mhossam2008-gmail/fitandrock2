@@ -49,9 +49,9 @@ public class FeedContextMenu extends LinearLayout {
     }
 
     @OnClick(R.id.btnDelete)
-    public void onReportClick() {
+    public void onDeleteClick() {
         if (onItemClickListener != null) {
-            onItemClickListener.onReportClick(feedItem);
+            onItemClickListener.onDeleteClick(feedItem);
         }
     }
 //
@@ -81,7 +81,7 @@ public class FeedContextMenu extends LinearLayout {
     }
 
     public interface OnFeedContextMenuItemClickListener {
-        public void onReportClick(int feedItem);
+        public void onDeleteClick(int feedItem);
 
         public void onSharePhotoClick(int feedItem);
 
