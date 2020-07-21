@@ -55,12 +55,12 @@ public class FeedContextMenu extends LinearLayout {
         }
     }
 //
-//    @OnClick(R.id.btnSharePhoto)
-//    public void onSharePhotoClick() {
-//        if (onItemClickListener != null) {
-//            onItemClickListener.onSharePhotoClick(feedItem);
-//        }
-//    }
+    @OnClick(R.id.btnUpdatePost)
+    public void onSharePhotoClick() {
+        if (onItemClickListener != null) {
+            onItemClickListener.onUpdatePost(feedItem);
+        }
+    }
 //
 //    @OnClick(R.id.btnCopyShareUrl)
 //    public void onCopyShareUrlClick() {
@@ -88,5 +88,7 @@ public class FeedContextMenu extends LinearLayout {
         public void onCopyShareUrlClick(int feedItem);
 
         public void onCancelClick(int feedItem);
+
+        public void onUpdatePost(int feedItem);
     }
 }

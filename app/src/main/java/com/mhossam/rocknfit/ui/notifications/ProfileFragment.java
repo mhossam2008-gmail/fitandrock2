@@ -1,16 +1,25 @@
 package com.mhossam.rocknfit.ui.notifications;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,6 +35,7 @@ import androidx.room.Room;
 import com.google.android.material.navigation.NavigationView;
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
+import com.mhossam.rocknfit.ProfileActivity;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.Utils.CircleTransformation;
 import com.mhossam.rocknfit.Utils.LinearLayoutManagerWrapper;
@@ -74,6 +84,8 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
     private boolean pendingIntroAnimation;
     private APIInterface apiInterface;
     private LoggedInUser currentUser;
+    private View layout;
+    private PopupWindow changeSortPopUp;
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -254,10 +266,36 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
         ((NewsFeedActivity)getActivity()).overridePendingTransition(0, 0);
     }
 
+
     @Override
-    public void onDeleteClick(int feedItem) {
+    public void onDeleteClick(int pos) {
+        Post currentItem = feedAdapter.getPostAtPosition(pos);
+        if (currentItem.getAccountID().equals(currentUser.getAccountID())) {
+            Map<String, String> requestMap = prepareRequestMap();
+            requestMap.put("PostID", currentItem.getPostID());
+            requestMap.put("AccountID", currentUser.getAccountID());
+            requestMap.put("Action", "DeletePost");
+            Call<String> call = apiInterface.deletePost(requestMap);
+
+            call.enqueue(new Callback<String>() {
+                @Override
+                public void onResponse(Call<String> call, Response<String> response) {
+
+                    Log.d("TAG", response.code() + "");
+
+                    feedAdapter.deleteItem(pos);
+                }
+
+                @Override
+                public void onFailure(Call<String> call, Throwable t) {
+                    call.cancel();
+                }
+            });
+        }
         FeedContextMenuManager.getInstance().hideContextMenu();
     }
+
+
 
     @Override
     public void onSharePhotoClick(int feedItem) {
@@ -274,6 +312,14 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
         FeedContextMenuManager.getInstance().hideContextMenu();
     }
 
+    @Override
+    public void onUpdatePost(int pos) {
+        Post currentItem = feedAdapter.getPostAtPosition(pos);
+        showPostPopup(getActivity(), currentItem);
+        FeedContextMenuManager.getInstance().hideContextMenu();
+    }
+
+
     protected HashMap<String, String> prepareRequestMap(int page) {
         HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
         result.put("Action", "GetPosts");
@@ -284,5 +330,100 @@ public class ProfileFragment extends Fragment  implements FeedAdapter.OnFeedItem
         result.put("Type", "0");
         return result;
     }
+
+    protected HashMap<String, String> prepareRequestMap() {
+        HashMap<String, String> result = ((NewsFeedActivity)getActivity()).prepareRequestMap();
+        result.put("AccountID", currentUser.getAccountID());
+        return result;
+    }
+
+    private void showPostPopup(final Activity context, Post postItem) {
+        LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        layout = layoutInflater.inflate(R.layout.post_popup_layout, null);
+
+
+        // Creating the PopupWindow
+        changeSortPopUp = new PopupWindow(context);
+        changeSortPopUp.setContentView(layout);
+        changeSortPopUp.setWidth(LinearLayout.LayoutParams.MATCH_PARENT);
+        changeSortPopUp.setHeight(LinearLayout.LayoutParams.MATCH_PARENT);
+        changeSortPopUp.setFocusable(true);
+
+
+        // Clear the default translucent background
+        changeSortPopUp.setBackgroundDrawable(new BitmapDrawable());
+
+        // Displaying the popup at the specified location, + offsets.
+        changeSortPopUp.showAtLocation(layout, Gravity.CENTER, 0, 0);
+        ImageView ivUserProfilePost = layout.findViewById(R.id.ivUserProfilePost);
+        String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org" + currentUser.getAccountImage();
+        Picasso.get()
+                .load(origUserProfilePhoto)
+                .placeholder(R.drawable.img_circle_placeholder)
+                .fit()
+                .into(ivUserProfilePost);
+        // Getting a reference to Close button, and close the popup when clicked.
+        ImageButton close = layout.findViewById(R.id.close);
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                changeSortPopUp.dismiss();
+            }
+        });
+        Button post = (Button) layout.findViewById(R.id.post);
+        EditText etPostText = layout.findViewById(R.id.etPostText);
+        String postID = null;
+        if (postItem != null) {
+            etPostText.setText(postItem.getPostContent());
+            postID = postItem.getPostID();
+        }
+        final String finalPostID = postID;
+        post.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Map<String, String> parametersMap = prepareRequestMap();
+                parametersMap.put("Action", "AddPost");
+                parametersMap.put("Content", etPostText.getText().toString());
+                if(finalPostID ==null) {
+                    parametersMap.put("Action", "AddPost");
+                    parametersMap.put("Content", etPostText.getText().toString());
+                }else{
+                    parametersMap.put("Action", "UpdatePost");
+                    parametersMap.put("Content", etPostText.getText().toString());
+                    parametersMap.put("PostID",postItem.getPostID());
+                }
+                parametersMap.put("AccountID", currentUser.getAccountID());
+                parametersMap.put("Type", "S");
+                Call<String> call = apiInterface.sharePost(parametersMap);
+                call.enqueue(new Callback<String>() {
+                    @RequiresApi(api = Build.VERSION_CODES.M)
+                    @Override
+                    public void onResponse(Call<String> call, Response<String> response) {
+                        Log.d("TAG", response.code() + "");
+                        String resource = response.body();
+                        if ((resource == null || resource.contains("null"))&&finalPostID==null) {
+                            Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
+                        } else {
+                            changeSortPopUp.dismiss();
+                            currentPage = 0;
+                            setupFeed();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<String> call, Throwable t) {
+                        Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
+                        call.cancel();
+                    }
+                });
+
+            }
+        });
+
+        ImageButton galleryButton = layout.findViewById(R.id.ibCameraButton);
+        galleryButton.setVisibility(View.INVISIBLE);
+    }
+
 
 }

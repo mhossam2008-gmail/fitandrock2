@@ -7,6 +7,11 @@
         android:text="Delete post"
         android:textColor="@color/btn_context_menu_text_red" />
 
+    <Button
+        android:id="@+id/btnUpdatePost"
+        style="@style/ContextMenuButton"
+        android:text="Update post" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"

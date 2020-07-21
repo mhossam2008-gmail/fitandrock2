@@ -176,7 +176,7 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
         etNewPost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showPostPopup((NewsFeedActivity) getActivity());
+                showPostPopup((NewsFeedActivity) getActivity(), null);
             }
         });
 
@@ -378,6 +378,13 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
         FeedContextMenuManager.getInstance().hideContextMenu();
     }
 
+    @Override
+    public void onUpdatePost(int pos) {
+        Post currentItem = feedAdapter.getPostAtPosition(pos);
+        showPostPopup(getActivity(),currentItem);
+        FeedContextMenuManager.getInstance().hideContextMenu();
+    }
+
     protected HashMap<String, String> prepareRequestMap(int page) {
         HashMap<String, String> result = ((NewsFeedActivity) getActivity()).prepareRequestMap();
         result.put("Action", "GetPosts");
@@ -408,7 +415,7 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
         return result;
     }
 
-    private void showPostPopup(final Activity context) {
+    private void showPostPopup(final Activity context , Post postItem) {
         isImagePost = false;
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         layout = layoutInflater.inflate(R.layout.post_popup_layout, null);
@@ -444,6 +451,13 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
         });
         Button post = (Button) layout.findViewById(R.id.post);
         etPostText = layout.findViewById(R.id.etPostText);
+        String postID = null ;
+        if(postItem!=null){
+            etPostText.setText(postItem.getPostContent());
+            postID = postItem.getPostID();
+        }
+
+        String finalPostID = postID;
         post.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -463,9 +477,15 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
                             MultipartBody.Part.createFormData("Media", "Media", requestFile);
 
                     Map<String, String> parametersMap = prepareRequestMap();
-                    parametersMap.put("Action", "AddPostHasMedia");
+                    if(finalPostID ==null) {
+                        parametersMap.put("Action", "AddPostHasMedia");
+                        parametersMap.put("Content", etPostText.getText().toString());
+                    }else{
+                        parametersMap.put("Action", "UpdatePost");
+                        parametersMap.put("Content", etPostText.getText().toString());
+                        parametersMap.put("PostID",postItem.getPostID());
+                    }
                     parametersMap.put("AccountID", currentUser.getAccountID());
-                    parametersMap.put("Content", etPostText.getText().toString());
                     parametersMap.put("Type", "S");
 
                     HashMap<String, RequestBody> requestBodyMap = new HashMap<>();
@@ -499,9 +519,15 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
 
                 } else {
                     Map<String, String> parametersMap = prepareRequestMap();
-                    parametersMap.put("Action", "AddPost");
+                    if(finalPostID ==null) {
+                        parametersMap.put("Action", "AddPost");
+                        parametersMap.put("Content", etPostText.getText().toString());
+                    }else{
+                        parametersMap.put("Action", "UpdatePost");
+                        parametersMap.put("Content", etPostText.getText().toString());
+                        parametersMap.put("PostID",postItem.getPostID());
+                    }
                     parametersMap.put("AccountID", currentUser.getAccountID());
-                    parametersMap.put("Content", etPostText.getText().toString());
                     parametersMap.put("Type", "S");
                     Call<String> call = apiInterface.sharePost(parametersMap);
                     call.enqueue(new Callback<String>() {
@@ -510,7 +536,7 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
                         public void onResponse(Call<String> call, Response<String> response) {
                             Log.d("TAG", response.code() + "");
                             String resource = response.body();
-                            if (resource == null || resource.contains("null")) {
+                            if ((resource == null || resource.contains("null"))&&finalPostID==null) {
                                 Toast.makeText(context, "Internal Server Error", Toast.LENGTH_SHORT).show();
                             } else {
                                 changeSortPopUp.dismiss();
@@ -535,6 +561,8 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
                 DashboardFragmentPermissionsDispatcher.startDialogWithPermissionCheck(DashboardFragment.this);
             }
         });
+
+
     }
 
     @Override
