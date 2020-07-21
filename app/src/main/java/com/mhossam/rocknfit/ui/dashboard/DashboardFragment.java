@@ -1,5 +1,6 @@
 package com.mhossam.rocknfit.ui.dashboard;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -11,6 +12,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -61,10 +63,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,11 +77,21 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import de.hdodenhof.circleimageview.CircleImageView;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.Request;
 import okhttp3.RequestBody;
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnNeverAskAgain;
+import permissions.dispatcher.OnPermissionDenied;
+import permissions.dispatcher.OnShowRationale;
+import permissions.dispatcher.PermissionRequest;
+import permissions.dispatcher.RuntimePermissions;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+@RuntimePermissions
 public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedItemClickListener,
         FeedContextMenu.OnFeedContextMenuItemClickListener {
 
@@ -118,6 +133,8 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
     private View layout;
     private boolean isImagePost = false;
     private Bitmap bitmap;
+    private File photoFile;
+    private String mCurrentPhotoPath;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -133,7 +150,7 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
             public void onClick(View view) {
                 DrawerLayout navDrawer = getActivity().findViewById(R.id.drawerLayout);
                 // If the navigation drawer is not open then open it, if its already open then close it.
-                if(!navDrawer.isDrawerOpen(GravityCompat.START))
+                if (!navDrawer.isDrawerOpen(GravityCompat.START))
                     navDrawer.openDrawer(GravityCompat.START);
                 else navDrawer.closeDrawer(GravityCompat.END);
             }
@@ -367,6 +384,7 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
     }
 
     private void showPostPopup(final Activity context) {
+        isImagePost = false;
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         layout = layoutInflater.inflate(R.layout.post_popup_layout, null);
 
@@ -406,17 +424,35 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
             public void onClick(View v) {
                 if (isImagePost) {
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 0 /*ignored for PNG*/, bos);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100 /*ignored for PNG*/, bos);
                     byte[] bitmapdata = bos.toByteArray();
-                    RequestBody fileToSend = RequestBody.create(bitmapdata);
+//                    RequestBody fileToSend = RequestBody.create(bitmapdata);
+                    // create RequestBody instance from file
+                    RequestBody requestFile =
+                            RequestBody.create(MediaType.parse("image/*"),
+                                    bitmapdata
+                            );
+
+                    // MultipartBody.Part is used to send also the actual file name
+                    MultipartBody.Part body =
+                            MultipartBody.Part.createFormData("Media", "Media", requestFile);
+
                     Map<String, String> parametersMap = prepareRequestMap();
                     parametersMap.put("Action", "AddPostHasMedia");
                     parametersMap.put("AccountID", currentUser.getAccountID());
                     parametersMap.put("Content", etPostText.getText().toString());
                     parametersMap.put("Type", "S");
 
-                    Call<String> call = apiInterface.postWithImage(parametersMap,
-                            fileToSend);
+                    HashMap<String, RequestBody> requestBodyMap = new HashMap<>();
+                    for (Map.Entry<String, String> pair : parametersMap.entrySet()) {
+                        RequestBody currentField =
+                                RequestBody.create(
+                                        okhttp3.MultipartBody.FORM, pair.getValue());
+                        requestBodyMap.put(pair.getKey(), currentField);
+                    }
+
+                    Call<String> call = apiInterface.postWithImage(requestBodyMap,
+                            body);
                     call.enqueue(new Callback<String>() {
                         @Override
                         public void onResponse(Call<String> call, Response<String> response) {
@@ -425,7 +461,8 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
 
                             String resource = response.body();
                             if (resource != null) {
-                                System.out.println("Response" + response);
+                                Toast.makeText(getActivity(), "Posted Successfully", Toast.LENGTH_SHORT).show();
+                                changeSortPopUp.dismiss();
                             }
                         }
 
@@ -470,7 +507,7 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
         ImageButton galleryButton = layout.findViewById(R.id.ibCameraButton);
         galleryButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                startDialog();
+                DashboardFragmentPermissionsDispatcher.startDialogWithPermissionCheck(DashboardFragment.this);
             }
         });
     }
@@ -478,12 +515,33 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAMERA_PIC_REQUEST && resultCode != getActivity().RESULT_CANCELED) {
+        if (requestCode == CAMERA_PIC_REQUEST && resultCode == getActivity().RESULT_OK) {
             ImageView imageView = layout.findViewById(R.id.ivPostImage);
-            bitmap = (Bitmap) data.getExtras().get("data");
+            // set the dimensions of the image
+            int targetW =imageView.getWidth();
+            int targetH = imageView.getWidth();
+
+            // Get the dimensions of the bitmap
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bmOptions.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(photoFile.getAbsolutePath(), bmOptions);
+            int photoW = bmOptions.outWidth;
+            int photoH = bmOptions.outHeight;
+
+            // Determine how much to scale down the image
+            int scaleFactor = Math.min(photoW/targetW, photoH/targetH);
+
+            // Decode the image file into a Bitmap sized to fill the View
+            bmOptions.inJustDecodeBounds = false;
+            bmOptions.inSampleSize = scaleFactor;
+            bmOptions.inPurgeable = true;
+
+            // stream = getContentResolver().openInputStream(data.getData());
+            bitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath(),bmOptions);
             imageView.setImageBitmap(bitmap);
+            isImagePost = true;
         }
-        if (requestCode == GALLERY_PICTURE_REQUEST && resultCode != getActivity().RESULT_CANCELED) {
+        if (requestCode == GALLERY_PICTURE_REQUEST && resultCode == getActivity().RESULT_OK) {
             Uri selectedImage = data.getData();
 
             InputStream inputStream = null;
@@ -508,9 +566,11 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
             ImageView imageView = layout.findViewById(R.id.ivPostImage);
             imageView.setImageBitmap(bitmap);
         }
+
     }
 
-    private void startDialog() {
+    @NeedsPermission({Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE})
+    void startDialog() {
         AlertDialog.Builder myAlertDialog = new AlertDialog.Builder(
                 getActivity());
         myAlertDialog.setTitle("Upload Pictures Option");
@@ -542,18 +602,47 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface arg0, int arg1) {
 
-                        Intent intent = new Intent(
-                                MediaStore.ACTION_IMAGE_CAPTURE);
-                        File f = new File(android.os.Environment
-                                .getExternalStorageDirectory(), "temp.jpg");
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT,
-                                Uri.fromFile(f));
-
-                        startActivityForResult(intent,
-                                CAMERA_PIC_REQUEST);
+                        dispatchTakePictureIntent();
 
                     }
                 });
         myAlertDialog.show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // NOTE: delegate the permission handling to generated method
+        DashboardFragmentPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
+        return image;
+    }
+
+
+    private void dispatchTakePictureIntent() {
+
+        Intent takePhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        try {
+            photoFile = createImageFile();
+            takePhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+            startActivityForResult(takePhotoIntent, CAMERA_PIC_REQUEST);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -11,6 +11,8 @@ import com.mhossam.rocknfit.model.Question;
 
 import java.util.Map;
 
+import okhttp3.MultipartBody;
+import okhttp3.Request;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.FieldMap;
@@ -93,8 +95,8 @@ public interface APIInterface {
 //    @FormUrlEncoded
     @Multipart
     @POST("MobAPIs/MobAPIs.php")
-    Call<String> postWithImage(@PartMap Map<String,String> params,
-                               @Part("Media")RequestBody file);
+    Call<String> postWithImage(@PartMap Map<String, RequestBody> params,
+                               @Part MultipartBody.Part file);
 
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")
