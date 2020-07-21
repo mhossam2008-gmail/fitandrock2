@@ -6,16 +6,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
-import androidx.room.Room;
 
 import com.mhossam.rocknfit.Utils.BaseAppCompatActivity;
-import com.mhossam.rocknfit.database.AppDatabase;
-import com.mhossam.rocknfit.model.LoggedInUser;
-import com.mhossam.rocknfit.ui.activity.LoginActivity;
-import com.mhossam.rocknfit.ui.activity.NewsFeedActivity;
 import com.mhossam.rocknfit.ui.activity.RegisterationSuccessActivity;
 
 import java.util.HashMap;
