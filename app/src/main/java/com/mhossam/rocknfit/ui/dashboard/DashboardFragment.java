@@ -260,13 +260,6 @@ public class DashboardFragment extends Fragment implements FeedAdapter.OnFeedIte
         List<AccountInfo> result = new ArrayList(resource.values());
         recommendedUsersAdapter.updateItems(true, result);
         recommendedUsersAdapter.notifyDataSetChanged();
-
-//        rvFeed.setOnScrollListener(new RecyclerView.OnScrollListener() {
-//            @Override
-//            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-//                FeedContextMenuManager.getInstance().onScrolled(recyclerView, dx, dy);
-//            }
-//        });
         rvRecommendedUsers.setItemAnimator(new FeedItemAnimator());
     }
 

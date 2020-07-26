@@ -153,7 +153,7 @@ public class EditProfileActivity extends BaseDrawerActivity {
         etHobbies.setText(loggedInUser.getHobbies());
         etDescription.setText(loggedInUser.getLittleDescription());
         etContactNumber.setText(loggedInUser.getContactNumber());
-        switch (loggedInUser.getAccountType()) {
+        switch (loggedInUser.getAccountTypeShort()) {
             case ("T"):
                 sAccountType.setSelection(2);
                 break;
@@ -165,16 +165,19 @@ public class EditProfileActivity extends BaseDrawerActivity {
                 break;
         }
 
-        if (loggedInUser.getMaritalStatus().equalsIgnoreCase("Married")) {
+        if (loggedInUser.getAccountTypeShort().equals("A")&&loggedInUser.getMaritalStatus().equalsIgnoreCase("Married")) {
             sMartialStatus.setSelection(1);
         }
 
-        if (loggedInUser.getAccountGender().equalsIgnoreCase("Male")) {
+        if (loggedInUser.getAccountTypeShort().equals("A")&&loggedInUser.getAccountGender().equalsIgnoreCase("Male")) {
             sGender.setSelection(1);
         } else {
             sGender.setSelection(2);
         }
-
+        if (!loggedInUser.getAccountTypeShort().equals("A")){
+            sMartialStatus.setVisibility(View.GONE);
+            sGender.setVisibility(View.GONE);
+        }
 
         sAccountType.setEnabled(false);
         String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org" + loggedInUser.getAccountImage();

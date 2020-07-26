@@ -1,6 +1,5 @@
 package com.mhossam.rocknfit.ui.activity;
 
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.ActionBar;
@@ -12,7 +11,6 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.mhossam.rocknfit.R;
-import com.mhossam.rocknfit.ui.dashboard.DashboardFragment;
 import com.mhossam.rocknfit.view.BaseDrawerActivity;
 
 public class NewsFeedActivity extends BaseDrawerActivity {
@@ -26,7 +24,7 @@ public class NewsFeedActivity extends BaseDrawerActivity {
         setContentView(R.layout.activity_news_feed);
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                 R.id.navigation_dashboard,R.id.navigation_questions, R.id.navigation_profile)
+                 R.id.navigation_dashboard,R.id.navigation_questions , R.id.navigation_class, R.id.navigation_profile)
                 .build();
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);

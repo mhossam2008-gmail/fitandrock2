@@ -22,4 +22,9 @@
         android:name="com.mhossam.rocknfit.ui.notifications.ProfileFragment"
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_notifications" />
+    <fragment
+        android:id="@+id/navigation_class"
+        android:name="com.mhossam.rocknfit.ClassFragment"
+        android:label="@string/title_classes"
+        tools:layout="@layout/fragment_class" />
 </navigation>

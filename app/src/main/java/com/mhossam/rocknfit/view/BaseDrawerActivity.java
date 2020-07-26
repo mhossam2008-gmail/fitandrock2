@@ -90,14 +90,6 @@ public class BaseDrawerActivity extends BaseActivity {
                 onGlobalMenuHeaderClick(v);
             }
         });
-
-//        Picasso.get()
-//                .load(profilePhoto)
-//                .placeholder(R.drawable.img_circle_placeholder)
-//                .resize(avatarSize, avatarSize)
-//                .centerCrop()
-//                .transform(new CircleTransformation())
-//                .into(ivMenuUserProfilePhoto);
     }
 
     public void onGlobalMenuHeaderClick(final View v) {

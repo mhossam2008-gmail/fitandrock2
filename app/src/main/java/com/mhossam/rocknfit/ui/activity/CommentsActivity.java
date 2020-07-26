@@ -140,11 +140,6 @@ public class CommentsActivity extends BaseDrawerActivity implements SendCommentB
     @Override
     public void onSendClickListener(View v) {
         if (validateComment()) {
-//            commentsAdapter.addItem();
-//            commentsAdapter.setAnimationsLocked(false);
-//            commentsAdapter.setDelayEnterAnimation(false);
-//            rvComments.smoothScrollBy(0, rvComments.getChildAt(0).getHeight() * commentsAdapter.getItemCount());
-
             Map<String, String> parametersMap = prepareAddCommentRequestMap();
             Call<String> call = apiInterface.addComment(parametersMap);
 
@@ -156,10 +151,6 @@ public class CommentsActivity extends BaseDrawerActivity implements SendCommentB
 
                     String resource = response.body();
                     if (resource != null) {
-//                    setupFeed();
-//                    fillUserSuggestions(resource);
-//                    feedAdapter.updateItems(true,new ArrayList<Post>());
-//                    Toast.makeText(CommentsActivity.this, "For Debug", Toast.LENGTH_SHORT).show();
                         System.out.println(resource);
                         etComment.setText(null);
                         btnSendComment.setCurrentState(SendCommentButton.STATE_DONE);
@@ -195,10 +186,6 @@ public class CommentsActivity extends BaseDrawerActivity implements SendCommentB
 
                 Map<String, PostComment> resource = response.body();
                 if (resource != null) {
-//                    setupFeed();
-//                    fillUserSuggestions(resource);
-//                    feedAdapter.updateItems(true,new ArrayList<Post>());
-//                    Toast.makeText(CommentsActivity.this, "For Debug", Toast.LENGTH_SHORT).show();
                     postComments = new ArrayList<>(resource.values());
                     setupComments();
                     commentsAdapter.setPostComments(postComments);

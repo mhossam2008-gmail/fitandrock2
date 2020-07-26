@@ -8,6 +8,7 @@ import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.model.PostComment;
 import com.mhossam.rocknfit.model.Question;
+import com.mhossam.rocknfit.model.TrainingClass;
 
 import java.util.Map;
 
@@ -113,6 +114,10 @@ public interface APIInterface {
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")
     Call<String> forgetPassword(@FieldMap Map<String, String> parametersMap);
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<Map<String, TrainingClass>> getTrainingClass(@FieldMap Map<String, String> requestMap);
 
 
 //    @FormUrlEncoded
