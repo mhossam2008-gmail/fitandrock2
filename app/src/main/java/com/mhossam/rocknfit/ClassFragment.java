@@ -1,6 +1,7 @@
 package com.mhossam.rocknfit;
 
 import android.app.Activity;
+import android.app.TimePickerDialog;
 import android.content.Context;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
@@ -9,12 +10,19 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.TimePicker;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -28,10 +36,13 @@ import com.mhossam.rocknfit.Utils.LinearLayoutManagerWrapper;
 import com.mhossam.rocknfit.database.AppDatabase;
 import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
+import com.mhossam.rocknfit.model.PredefinedClass;
 import com.mhossam.rocknfit.model.TrainingClass;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -69,6 +80,14 @@ public class ClassFragment extends Fragment {
 
     private View layout;
     private PopupWindow changeSortPopUp;
+    private EditText etStartTime;
+    private EditText etEndTime;
+    private AppCompatSpinner sClassType;
+    private List<PredefinedClass> predefinedClasses;
+    private EditText etAdditionalInfo;
+    private EditText etVideoURL;
+    private EditText etClassName;
+    private Spinner sGender;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -94,6 +113,7 @@ public class ClassFragment extends Fragment {
         AppDatabase db = Room.databaseBuilder(getContext(),
                 AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
         currentUser = db.loggedInUserDao().getLoggedInUser();
+        predefinedClasses = db.lookupsDao().getAllPredefinedClasses();
         getTrainingClasses();
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
@@ -104,7 +124,6 @@ public class ClassFragment extends Fragment {
     private void getTrainingClasses() {
         loading = true;
         Map<String, String> requestMap = prepareRequestMap();
-        requestMap.put("QuestionID", "0");
         requestMap.put("Index", currentPage + "");
         requestMap.put("Size", "10");
 
@@ -151,7 +170,7 @@ public class ClassFragment extends Fragment {
                 showAddClassPopup(getActivity(),null);
             }
         });
-        trainingClassAdapter = new ClassAdapter(new ArrayList<TrainingClass>());
+        trainingClassAdapter = new ClassAdapter(new ArrayList<TrainingClass>(),getActivity());
         // Set the adapter
         if (recyclerView instanceof RecyclerView) {
             Context context = view.getContext();
@@ -214,7 +233,76 @@ public class ClassFragment extends Fragment {
                 changeSortPopUp.dismiss();
             }
         });
+        sClassType = (AppCompatSpinner)layout.findViewById(R.id.sClassType);
+        ArrayAdapter<PredefinedClass> adapter = new ArrayAdapter<PredefinedClass>(getActivity(), android.R.layout.simple_spinner_dropdown_item, predefinedClasses.toArray(new PredefinedClass[predefinedClasses.size()]));
+
+        sClassType.setAdapter(adapter);
+        etStartTime = (EditText) layout.findViewById(R.id.etStartTime);
+        etEndTime = (EditText)layout.findViewById(R.id.etEndTime);
+        etAdditionalInfo = (EditText)layout.findViewById(R.id.etAdditionalInfo);
+        etVideoURL = (EditText)layout.findViewById(R.id.etVideoURL);
+        etClassName = (EditText)layout.findViewById(R.id.etClassName);
+        sGender = (Spinner)layout.findViewById(R.id.sGender);
+        etStartTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showCustomTimePicker(true);
+            }
+        });
+        etEndTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showCustomTimePicker(false);
+            }
+        });
         Button addClassButton = (Button) layout.findViewById(R.id.bAddClass);
+        addClassButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Map<String,String> requestMap = prepareRequestMap();
+                requestMap.put("Action","AddClass");
+                requestMap.put("AccountID",currentUser.getAccountID());
+                requestMap.put("ClassName", etClassName.getText().toString());
+                requestMap.put("ClassID",((PredefinedClass)sClassType.getSelectedItem()).getClassID());
+                requestMap.put("ClassGender",sGender.getSelectedItem().toString());
+                requestMap.put("ClassStart",etStartTime.getText().toString());
+                requestMap.put("ClassEnd",etEndTime.getText().toString());
+                requestMap.put("Info",etAdditionalInfo.getText().toString());
+
+                 Call<String> call = apiInterface.addClass(requestMap);
+                 call.enqueue(new Callback<String>() {
+                     @Override
+                     public void onResponse(Call<String> call, Response<String> response) {
+                         Log.d("TAG", response.code() + "");
+
+                            String resource = response.body();
+                            if (resource != null) {
+                                Toast.makeText(getActivity(), "Class Created Successfully", Toast.LENGTH_SHORT).show();
+                                changeSortPopUp.dismiss();
+                                getTrainingClasses();
+                            }
+                     }
+
+                     @Override
+                     public void onFailure(Call<String> call, Throwable t) {
+
+                     }
+                 });
+            }
+        });
+        /**
+         *
+         * Action:AddClass
+         * ApiUser:Test
+         * ApiPass:Test
+         * AccountID:98
+         * ClassName:Test PostMan 2
+         * ClassID:16
+         * ClassGender:Male
+         * ClassStart:2020-08-25
+         * ClassEnd:2020-09=25
+         * Info:Test Class from Postman to check what is needed in Android APP 2
+         * */
 //        etPostText = layout.findViewById(R.id.etPostText);
 //        String postID = null ;
 //        if(postItem!=null){
@@ -326,8 +414,32 @@ public class ClassFragment extends Fragment {
 //                DashboardFragmentPermissionsDispatcher.startDialogWithPermissionCheck(DashboardFragment.this);
 //            }
 //        });
-
-
     }
 
+    public void showCustomTimePicker(boolean start) {
+
+        final Calendar myCalender = Calendar.getInstance();
+        int hour = myCalender.get(Calendar.HOUR_OF_DAY);
+        int minute = myCalender.get(Calendar.MINUTE);
+
+
+        TimePickerDialog.OnTimeSetListener myTimeListener = new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                if (view.isShown()) {
+                    myCalender.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                    myCalender.set(Calendar.MINUTE, minute);
+                    if(start){
+                        etStartTime.setText(hourOfDay+":"+minute);
+                    }else{
+                        etEndTime.setText(hourOfDay+":"+minute);
+                    }
+                }
+            }
+        };
+        TimePickerDialog timePickerDialog = new TimePickerDialog(getActivity(), android.R.style.Theme_Holo_Light_Dialog_NoActionBar, myTimeListener, hour, minute, true);
+        timePickerDialog.setTitle("Choose hour:");
+        timePickerDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        timePickerDialog.show();
+    }
 }

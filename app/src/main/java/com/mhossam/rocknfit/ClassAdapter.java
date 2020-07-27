@@ -1,11 +1,14 @@
 package com.mhossam.rocknfit;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -15,6 +18,7 @@ import com.mhossam.rocknfit.model.Question;
 import com.mhossam.rocknfit.model.TrainingClass;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindDimen;
@@ -27,14 +31,17 @@ import butterknife.ButterKnife;
  */
 public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ViewHolder> {
 
+    private final Context context;
     private List<TrainingClass> mValues;
 
-    public ClassAdapter(List<TrainingClass> items) {
+    public ClassAdapter(List<TrainingClass> items, Context context) {
         mValues = items;
+        this.context = context;
     }
 
 
     public void updateItems(List<TrainingClass> items) {
+        mValues = new ArrayList<>();
         mValues.addAll(items);
         notifyDataSetChanged();
     }
@@ -61,6 +68,18 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ViewHolder> 
         String dateRange = mValues.get(position).getClassStart()+" - "+mValues.get(position).getClassEnd();
         holder.tvDateRange.setText(dateRange);
         holder.tvGender.setText(mValues.get(position).getBranchGender());
+        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(context, "Delete Pressed , but functionality not provided by Backend yet", Toast.LENGTH_LONG).show();
+            }
+        });
+        holder.btnEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Toast.makeText(context, "Edit Pressed , but functionality not provided by Backend yet", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Override
@@ -81,6 +100,10 @@ public class ClassAdapter extends RecyclerView.Adapter<ClassAdapter.ViewHolder> 
         TextView tvDateRange;
         @BindView(R.id.tvGender)
         TextView tvGender;
+        @BindView(R.id.btnDelete)
+        Button btnDelete;
+        @BindView(R.id.btnEdit)
+        ImageView btnEdit;
 
         public ViewHolder(View view) {
             super(view);

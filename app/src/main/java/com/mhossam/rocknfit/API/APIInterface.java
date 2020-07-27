@@ -7,6 +7,7 @@ import com.mhossam.rocknfit.model.Governorate;
 import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.model.PostComment;
+import com.mhossam.rocknfit.model.PredefinedClass;
 import com.mhossam.rocknfit.model.Question;
 import com.mhossam.rocknfit.model.TrainingClass;
 
@@ -118,6 +119,16 @@ public interface APIInterface {
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")
     Call<Map<String, TrainingClass>> getTrainingClass(@FieldMap Map<String, String> requestMap);
+
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<Map<String, PredefinedClass>> getPredefinedClasses(@FieldMap Map<String, String> requestMap);
+
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<String> addClass(@FieldMap Map<String,String> params);
 
 
 //    @FormUrlEncoded

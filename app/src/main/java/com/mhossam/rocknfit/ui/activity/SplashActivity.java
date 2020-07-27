@@ -14,9 +14,12 @@ import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.R;
 import com.mhossam.rocknfit.database.AppDatabase;
+import com.mhossam.rocknfit.model.Country;
 import com.mhossam.rocknfit.model.LoggedInUser;
+import com.mhossam.rocknfit.model.PredefinedClass;
 import com.mhossam.rocknfit.view.BaseActivity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +67,28 @@ public class SplashActivity extends BaseActivity {
             HashMap<String, String> requestMap = this.prepareRequestMap();
             requestMap.put("Action", "GetAccountByID");
             requestMap.put("AccountID", currentUser.getAccountID());
+
+            HashMap<String, String> lookupsRequestMap = this.prepareRequestMap();
+            lookupsRequestMap.put("Action", "GetPredefinedClasses");
+            Call<Map<String, PredefinedClass>> lookupsCall = apiInterface.getPredefinedClasses(lookupsRequestMap);
+            lookupsCall.enqueue(new Callback<Map<String, PredefinedClass>>() {
+                @Override
+                public void onResponse(Call<Map<String, PredefinedClass>> call, Response<Map<String, PredefinedClass>> response) {
+                    Map<String, PredefinedClass> resource = response.body();
+                    if (response.body() != null) {
+                        ArrayList<PredefinedClass> predefinedClassesList = new ArrayList<>(resource.values());
+                        PredefinedClass[] classes = predefinedClassesList.toArray(new PredefinedClass[predefinedClassesList.size()]);
+                        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                                AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
+                        db.lookupsDao().insertAll(classes);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Map<String, PredefinedClass>> call, Throwable t) {
+
+                }
+            });
 
             Call<Map<String, LoggedInUser>> call = apiInterface.getLoggedUserInfo(requestMap);
 

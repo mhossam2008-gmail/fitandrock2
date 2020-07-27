@@ -11,6 +11,11 @@
         <item>Male</item>
         <item>Female</item>
     </string-array>
+    <string-array name="class_gender">
+        <item>Any</item>
+        <item>Male</item>
+        <item>Female</item>
+    </string-array>
     <string-array name="martialStatus" >
         <item>Single</item>
         <item>Married</item>
