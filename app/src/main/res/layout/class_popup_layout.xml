@@ -6,11 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/rounded_edit_text">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@drawable/rounded_edit_text">
+        android:background="@drawable/rounded_edit_text"
+        android:orientation="vertical">
+
         <ImageButton
             android:id="@+id/close"
             android:layout_width="wrap_content"
@@ -54,12 +56,14 @@
             android:hint="Class Name"
             app:layout_constraintEnd_toEndOf="parent"
             tools:layout_editor_absoluteY="48dp" />
+
         <TextView
             android:id="@+id/textView4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:text="Gender" />
+
         <Spinner
             android:id="@+id/sGender"
             android:layout_width="match_parent"
@@ -67,6 +71,7 @@
             android:layout_margin="8dp"
             android:background="@drawable/rounded_edit_text"
             android:entries="@array/class_gender" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -86,8 +91,8 @@
                 android:id="@+id/etEndTime"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
                 android:layout_margin="8dp"
+                android:layout_weight="1"
                 android:cursorVisible="false"
                 android:focusable="false"
                 android:hint="End Time" />
