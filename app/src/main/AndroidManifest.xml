@@ -18,6 +18,10 @@
         android:roundIcon="@drawable/logo_temp"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity
+            android:name=".TrainingPlanActivity"
+            android:label="@string/title_activity_training_plan"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity android:name=".ForgetPasswordActivity" />
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".ProfileActivity" />

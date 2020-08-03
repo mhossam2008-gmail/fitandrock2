@@ -16,6 +16,7 @@ import androidx.room.Room;
 import com.google.android.material.navigation.NavigationView;
 import com.mhossam.rocknfit.EditProfileActivity;
 import com.mhossam.rocknfit.R;
+import com.mhossam.rocknfit.TrainingPlanActivity;
 import com.mhossam.rocknfit.database.AppDatabase;
 import com.mhossam.rocknfit.ui.activity.MainActivity;
 
@@ -61,6 +62,9 @@ public class BaseDrawerActivity extends BaseActivity {
                     finish();
                 }else if(id==R.id.menu_profile_edit){
                     Intent i = new Intent(BaseDrawerActivity.this, EditProfileActivity.class);
+                    startActivity(i);
+                }else if(id==R.id.menu_training_plan){
+                    Intent i = new Intent(BaseDrawerActivity.this, TrainingPlanActivity.class);
                     startActivity(i);
                 }
                 return true;

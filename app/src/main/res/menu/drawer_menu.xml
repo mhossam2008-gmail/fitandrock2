@@ -8,6 +8,10 @@
             android:id="@+id/menu_questions"
             android:icon="@drawable/ic_global_menu_news"
             android:title="Questions" />
+        <item
+            android:id="@+id/menu_training_plan"
+            android:icon="@drawable/ic_global_menu_popular"
+            android:title="Training Plans" />
     </group>
     <group android:id="@+id/menu_group_2">
         <item
