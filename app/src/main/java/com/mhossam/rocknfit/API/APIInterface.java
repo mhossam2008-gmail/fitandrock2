@@ -137,6 +137,11 @@ public interface APIInterface {
     Call<String> addClass(@FieldMap Map<String,String> params);
 
 
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<String> copyTrainingPlan(@FieldMap Map<String, String> requestMap);
+
+
 //    @FormUrlEncoded
 //    @POST("/api/users?")
 //    Call<UserList> doCreateUserWithField(@Field("name") String name, @Field("job") String job);

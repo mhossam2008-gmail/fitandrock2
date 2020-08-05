@@ -1,26 +1,45 @@
 package com.mhossam.rocknfit;
 
 import android.content.Context;
+import android.graphics.drawable.BitmapDrawable;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.mhossam.rocknfit.API.APIClient;
+import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.dummy.DummyContent.DummyItem;
+import com.mhossam.rocknfit.model.LoggedInUser;
+import com.mhossam.rocknfit.model.PredefinedClass;
 import com.mhossam.rocknfit.model.TrainingClass;
 import com.mhossam.rocknfit.model.TrainingPlan;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link DummyItem}.
@@ -29,11 +48,18 @@ import butterknife.ButterKnife;
 public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapter.ViewHolder> {
 
     private final Context context;
+    private final APIInterface apiInterface;
+    private final TrainingPlansFragment parentFragment;
     private List<TrainingPlan> mValues;
+    private LoggedInUser currentUser;
 
-    public TrainingPlanAdapter(List<TrainingPlan> items, Context context) {
+    public TrainingPlanAdapter(List<TrainingPlan> items, Context context, LoggedInUser currentUser, TrainingPlansFragment trainingPlansFragment) {
         mValues = items;
         this.context = context;
+        this.currentUser = currentUser;
+        apiInterface = APIClient.getClient().create(APIInterface.class);
+        parentFragment = trainingPlansFragment;
+
     }
 
 
@@ -65,6 +91,25 @@ public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapte
 //                .into(holder.ivFeedCenter);
 //        String dateRange = mValues.get(position).getClassStart()+" - "+mValues.get(position).getClassEnd();
         holder.tvDateRange.setText(holder.mItem.getCreationDate());
+        holder.btnCopyPlan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                holder.showCopyPopup();
+            }
+        });
+        holder.btnInvitePlan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                holder.showInvitePopup();
+            }
+        });
+
+        holder.btnDeletePlan.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                holder.showDeletePopup();
+            }
+        });
 //        holder.tvGender.setText(mValues.get(position).getBranchGender());
 //        holder.btnDelete.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -80,6 +125,14 @@ public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapte
 //        });
     }
 
+
+    private Map<String, String> prepareRequestMap() {
+        Map<String, String> requestMap = new HashMap<>();
+        requestMap.put("ApiUser", "Test");
+        requestMap.put("ApiPass", "Test");
+        return requestMap;
+    }
+
     @Override
     public int getItemCount() {
         return mValues.size();
@@ -87,15 +140,24 @@ public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapte
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public TrainingPlan mItem;
-//
+        //
         @BindView(R.id.tvPlanName)
         TextView tvPlanName;
         @BindView(R.id.tvPlanDays)
         TextView tvPlanDays;
-//        @BindView(R.id.ivFeedCenter)
+        //        @BindView(R.id.ivFeedCenter)
 //        ImageView ivFeedCenter;
         @BindView(R.id.tvDateRange)
         TextView tvDateRange;
+
+        @BindView(R.id.btnCopyPlan)
+        Button btnCopyPlan;
+
+        @BindView(R.id.btnInvitePlan)
+        Button btnInvitePlan;
+
+        @BindView(R.id.btnDeletePlan)
+        ImageButton btnDeletePlan;
 //        @BindView(R.id.tvGender)
 //        TextView tvGender;
 //        @BindView(R.id.btnDelete)
@@ -108,6 +170,164 @@ public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapte
             ButterKnife.bind(this, view);
 
         }
+        private void showInvitePopup() {
+            LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View layout = layoutInflater.inflate(R.layout.invite_plan_popup_layout, null);
+
+
+            // Creating the PopupWindow
+            PopupWindow changeSortPopUp = new PopupWindow(context);
+            changeSortPopUp.setContentView(layout);
+            changeSortPopUp.setWidth(LinearLayout.LayoutParams.MATCH_PARENT);
+            changeSortPopUp.setHeight(LinearLayout.LayoutParams.WRAP_CONTENT);
+            changeSortPopUp.setFocusable(true);
+
+
+            // Clear the default translucent background
+            changeSortPopUp.setBackgroundDrawable(new BitmapDrawable());
+
+            // Displaying the popup at the specified location, + offsets.
+            changeSortPopUp.showAtLocation(layout, Gravity.CENTER, 0, 0);
+//        ivUserProfilePost = layout.findViewById(R.id.ivUserProfilePost);
+//        String origUserProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org" + currentUser.getAccountImage();
+//        Picasso.get()
+//                .load(origUserProfilePhoto)
+//                .placeholder(R.drawable.img_circle_placeholder)
+//                .fit()
+//                .into(ivUserProfilePost);
+//        // Getting a reference to Close button, and close the popup when clicked.
+            ImageButton close = layout.findViewById(R.id.close);
+            close.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    changeSortPopUp.dismiss();
+                }
+            });
+        }
+
+        private void showDeletePopup() {
+            LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View layout = layoutInflater.inflate(R.layout.delete_plan_popup_layout, null);
+
+
+            // Creating the PopupWindow
+            PopupWindow changeSortPopUp = new PopupWindow(context);
+            changeSortPopUp.setContentView(layout);
+            changeSortPopUp.setWidth(LinearLayout.LayoutParams.MATCH_PARENT);
+            changeSortPopUp.setHeight(LinearLayout.LayoutParams.WRAP_CONTENT);
+            changeSortPopUp.setFocusable(true);
+
+
+            // Clear the default translucent background
+            changeSortPopUp.setBackgroundDrawable(new BitmapDrawable());
+
+            // Displaying the popup at the specified location, + offsets.
+            changeSortPopUp.showAtLocation(layout, Gravity.CENTER, 0, 0);
+
+            ImageButton close = layout.findViewById(R.id.close);
+            close.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    changeSortPopUp.dismiss();
+                }
+            });
+            Button deletePlan = (Button) layout.findViewById(R.id.btnDeletePlan);
+            deletePlan.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Map<String, String> requestMap = prepareRequestMap();
+                    requestMap.put("Action", "DeletePlan");
+                    requestMap.put("AccountID", currentUser.getAccountID());
+                    requestMap.put("PlanID",mItem.getPlanID());
+                    Call<String> call = apiInterface.copyTrainingPlan(requestMap);
+                    call.enqueue(new Callback<String>() {
+                        @Override
+                        public void onResponse(Call<String> call, Response<String> response) {
+                            Log.d("TAG", response.code() + "");
+
+                            String resource = response.body();
+                            if (resource == null || resource.equals("null")) {
+                                Toast.makeText(context, "Plan Deleted Successfully", Toast.LENGTH_SHORT).show();
+                                changeSortPopUp.dismiss();
+                                parentFragment.getTrainingPlans();
+                            }else{
+                                Toast.makeText(context, resource, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<String> call, Throwable t) {
+
+                        }
+                    });
+                }
+            });
+        }
+
+
+        private void showCopyPopup() {
+            LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            View layout = layoutInflater.inflate(R.layout.copy_plan_popup_layout, null);
+
+
+            // Creating the PopupWindow
+            PopupWindow changeSortPopUp = new PopupWindow(context);
+            changeSortPopUp.setContentView(layout);
+            changeSortPopUp.setWidth(LinearLayout.LayoutParams.MATCH_PARENT);
+            changeSortPopUp.setHeight(LinearLayout.LayoutParams.MATCH_PARENT);
+            changeSortPopUp.setFocusable(true);
+
+
+            // Clear the default translucent background
+            changeSortPopUp.setBackgroundDrawable(new BitmapDrawable());
+
+            // Displaying the popup at the specified location, + offsets.
+            changeSortPopUp.showAtLocation(layout, Gravity.CENTER, 0, 0);
+            // Getting a reference to Close button, and close the popup when clicked.
+            ImageButton close = layout.findViewById(R.id.close);
+            close.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    changeSortPopUp.dismiss();
+                }
+            });
+
+            Button copyPlan = (Button) layout.findViewById(R.id.btnCopyPlan);
+            EditText planName = (EditText)layout.findViewById(R.id.etPlanName);
+            copyPlan.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Map<String, String> requestMap = prepareRequestMap();
+                    requestMap.put("Action", "CopyPlan");
+                    requestMap.put("AccountID", currentUser.getAccountID());
+                    requestMap.put("Name", planName.getText().toString());
+                    requestMap.put("PlanID",mItem.getPlanID());
+                    Call<String> call = apiInterface.copyTrainingPlan(requestMap);
+                    call.enqueue(new Callback<String>() {
+                        @Override
+                        public void onResponse(Call<String> call, Response<String> response) {
+                            Log.d("TAG", response.code() + "");
+
+                            String resource = response.body();
+                            if (resource == null || resource.equals("null")) {
+                                Toast.makeText(context, "Plan Copied Successfully", Toast.LENGTH_SHORT).show();
+                                changeSortPopUp.dismiss();
+                                parentFragment.getTrainingPlans();
+//                                ((TrainingPlanActivity)context).recreate();
+                            }else{
+                                Toast.makeText(context, resource, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<String> call, Throwable t) {
+
+                        }
+                    });
+                }
+            });
+        }
+
     }
 
 }

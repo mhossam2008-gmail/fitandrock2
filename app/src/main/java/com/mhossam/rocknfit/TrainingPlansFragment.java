@@ -22,8 +22,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatSpinner;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
@@ -36,7 +34,6 @@ import com.mhossam.rocknfit.database.AppDatabase;
 import com.mhossam.rocknfit.model.LoggedInUser;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.model.PredefinedClass;
-import com.mhossam.rocknfit.model.TrainingClass;
 import com.mhossam.rocknfit.model.TrainingPlan;
 
 import java.util.ArrayList;
@@ -80,14 +77,7 @@ public class TrainingPlansFragment extends Fragment {
 
     private View layout;
     private PopupWindow changeSortPopUp;
-    private EditText etStartTime;
-    private EditText etEndTime;
-    private AppCompatSpinner sClassType;
-    private List<PredefinedClass> predefinedClasses;
-    private EditText etAdditionalInfo;
-    private EditText etVideoURL;
-    private EditText etClassName;
-    private Spinner sGender;
+
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -113,7 +103,6 @@ public class TrainingPlansFragment extends Fragment {
         AppDatabase db = Room.databaseBuilder(getContext(),
                 AppDatabase.class, "rockAndFit").allowMainThreadQueries().fallbackToDestructiveMigration().build();
         currentUser = db.loggedInUserDao().getLoggedInUser();
-        predefinedClasses = db.lookupsDao().getAllPredefinedClasses();
         getTrainingPlans();
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
@@ -121,7 +110,7 @@ public class TrainingPlansFragment extends Fragment {
 
     }
 
-    private void getTrainingPlans() {
+    protected void getTrainingPlans() {
         loading = true;
         Map<String, String> requestMap = prepareRequestMap();
         requestMap.put("Index", currentPage + "");
@@ -166,10 +155,10 @@ public class TrainingPlansFragment extends Fragment {
         fabAddClass.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showAddClassPopup(getActivity(),null);
+                showAddPlanPopup(getActivity(),null);
             }
         });
-        trainingClassAdapter = new TrainingPlanAdapter(new ArrayList<TrainingPlan>(),getActivity());
+        trainingClassAdapter = new TrainingPlanAdapter(new ArrayList<TrainingPlan>(),getActivity(),currentUser, this);
         // Set the adapter
         if (recyclerView instanceof RecyclerView) {
             Context context = view.getContext();
@@ -199,9 +188,9 @@ public class TrainingPlansFragment extends Fragment {
         return view;
     }
 
-    private void showAddClassPopup(final Activity context , Post postItem) {
+    private void showAddPlanPopup(final Activity context , Post postItem) {
         LayoutInflater layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        layout = layoutInflater.inflate(R.layout.class_popup_layout, null);
+        layout = layoutInflater.inflate(R.layout.create_plan_popup_layout, null);
 
 
         // Creating the PopupWindow
@@ -232,61 +221,37 @@ public class TrainingPlansFragment extends Fragment {
                 changeSortPopUp.dismiss();
             }
         });
-        sClassType = (AppCompatSpinner)layout.findViewById(R.id.sClassType);
-        ArrayAdapter<PredefinedClass> adapter = new ArrayAdapter<PredefinedClass>(getActivity(), android.R.layout.simple_spinner_dropdown_item, predefinedClasses.toArray(new PredefinedClass[predefinedClasses.size()]));
-
-        sClassType.setAdapter(adapter);
-        etStartTime = (EditText) layout.findViewById(R.id.etStartTime);
-        etEndTime = (EditText)layout.findViewById(R.id.etEndTime);
-        etAdditionalInfo = (EditText)layout.findViewById(R.id.etAdditionalInfo);
-        etVideoURL = (EditText)layout.findViewById(R.id.etVideoURL);
-        etClassName = (EditText)layout.findViewById(R.id.etClassName);
-        sGender = (Spinner)layout.findViewById(R.id.sGender);
-        etStartTime.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showCustomTimePicker(true);
-            }
-        });
-        etEndTime.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showCustomTimePicker(false);
-            }
-        });
-        Button addClassButton = (Button) layout.findViewById(R.id.bAddClass);
+        Button addClassButton = (Button) layout.findViewById(R.id.btnAddPlan);
+        EditText planName = (EditText) layout.findViewById(R.id.etPlanName);
+        EditText daysNo = (EditText) layout.findViewById(R.id.etDaysNo);
         addClassButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Map<String,String> requestMap = prepareRequestMap();
-                requestMap.put("Action","AddClass");
-                requestMap.put("AccountID",currentUser.getAccountID());
-                requestMap.put("ClassName", etClassName.getText().toString());
-                requestMap.put("ClassID",((PredefinedClass)sClassType.getSelectedItem()).getClassID());
-                requestMap.put("ClassGender",sGender.getSelectedItem().toString());
-                requestMap.put("ClassStart",etStartTime.getText().toString());
-                requestMap.put("ClassEnd",etEndTime.getText().toString());
-                requestMap.put("Info",etAdditionalInfo.getText().toString());
+                Map<String, String> requestMap = prepareRequestMap();
+                requestMap.put("Action", "AddPlan");
+                requestMap.put("AccountID", currentUser.getAccountID());
+                requestMap.put("PlanName", planName.getText().toString());
+                requestMap.put("DaysNo", daysNo.getText().toString());
 
-                 Call<String> call = apiInterface.addClass(requestMap);
-                 call.enqueue(new Callback<String>() {
-                     @Override
-                     public void onResponse(Call<String> call, Response<String> response) {
-                         Log.d("TAG", response.code() + "");
+                Call<String> call = apiInterface.addClass(requestMap);
+                call.enqueue(new Callback<String>() {
+                    @Override
+                    public void onResponse(Call<String> call, Response<String> response) {
+                        Log.d("TAG", response.code() + "");
 
-                            String resource = response.body();
-                            if (resource != null) {
-                                Toast.makeText(getActivity(), "Class Created Successfully", Toast.LENGTH_SHORT).show();
-                                changeSortPopUp.dismiss();
-                                getTrainingPlans();
-                            }
-                     }
+                        String resource = response.body();
+                        if (resource == null) {
+                            Toast.makeText(getActivity(), "Plan Created Successfully", Toast.LENGTH_SHORT).show();
+                            changeSortPopUp.dismiss();
+                            getTrainingPlans();
+                        }
+                    }
 
-                     @Override
-                     public void onFailure(Call<String> call, Throwable t) {
+                    @Override
+                    public void onFailure(Call<String> call, Throwable t) {
 
-                     }
-                 });
+                    }
+                });
             }
         });
         /**
@@ -413,32 +378,5 @@ public class TrainingPlansFragment extends Fragment {
 //                DashboardFragmentPermissionsDispatcher.startDialogWithPermissionCheck(DashboardFragment.this);
 //            }
 //        });
-    }
-
-    public void showCustomTimePicker(boolean start) {
-
-        final Calendar myCalender = Calendar.getInstance();
-        int hour = myCalender.get(Calendar.HOUR_OF_DAY);
-        int minute = myCalender.get(Calendar.MINUTE);
-
-
-        TimePickerDialog.OnTimeSetListener myTimeListener = new TimePickerDialog.OnTimeSetListener() {
-            @Override
-            public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                if (view.isShown()) {
-                    myCalender.set(Calendar.HOUR_OF_DAY, hourOfDay);
-                    myCalender.set(Calendar.MINUTE, minute);
-                    if(start){
-                        etStartTime.setText(hourOfDay+":"+minute);
-                    }else{
-                        etEndTime.setText(hourOfDay+":"+minute);
-                    }
-                }
-            }
-        };
-        TimePickerDialog timePickerDialog = new TimePickerDialog(getActivity(), android.R.style.Theme_Holo_Light_Dialog_NoActionBar, myTimeListener, hour, minute, true);
-        timePickerDialog.setTitle("Choose hour:");
-        timePickerDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        timePickerDialog.show();
     }
 }
