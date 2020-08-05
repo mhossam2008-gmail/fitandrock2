@@ -10,6 +10,7 @@ import com.mhossam.rocknfit.model.PostComment;
 import com.mhossam.rocknfit.model.PredefinedClass;
 import com.mhossam.rocknfit.model.Question;
 import com.mhossam.rocknfit.model.TrainingClass;
+import com.mhossam.rocknfit.model.TrainingPlan;
 
 import java.util.Map;
 
@@ -124,6 +125,11 @@ public interface APIInterface {
     @FormUrlEncoded
     @POST("MobAPIs/MobAPIs.php")
     Call<Map<String, PredefinedClass>> getPredefinedClasses(@FieldMap Map<String, String> requestMap);
+
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call<Map<String, TrainingPlan>> getTrainingPlans(@FieldMap Map<String, String> requestMap);
+
 
 
     @FormUrlEncoded

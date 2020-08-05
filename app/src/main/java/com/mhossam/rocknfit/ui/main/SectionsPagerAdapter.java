@@ -8,7 +8,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
+import com.mhossam.rocknfit.ClassFragment;
 import com.mhossam.rocknfit.R;
+import com.mhossam.rocknfit.TrainingPlansFragment;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
@@ -30,6 +32,9 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     public Fragment getItem(int position) {
         // getItem is called to instantiate the fragment for the given page.
         // Return a PlaceholderFragment (defined as a static inner class below).
+        if(position==0){
+            return TrainingPlansFragment.newInstance(position+1);
+        }
         return PlaceholderFragment.newInstance(position + 1);
     }
 
