@@ -5,6 +5,7 @@ import com.mhossam.rocknfit.model.Country;
 import com.mhossam.rocknfit.model.District;
 import com.mhossam.rocknfit.model.Governorate;
 import com.mhossam.rocknfit.model.LoggedInUser;
+import com.mhossam.rocknfit.model.PlanDetails;
 import com.mhossam.rocknfit.model.Post;
 import com.mhossam.rocknfit.model.PostComment;
 import com.mhossam.rocknfit.model.PredefinedClass;
@@ -141,9 +142,9 @@ public interface APIInterface {
     @POST("MobAPIs/MobAPIs.php")
     Call<String> copyTrainingPlan(@FieldMap Map<String, String> requestMap);
 
+    @FormUrlEncoded
+    @POST("MobAPIs/MobAPIs.php")
+    Call< Map<String, PlanDetails>> getPlanDetails(@FieldMap Map<String, String> requestMap);
 
-//    @FormUrlEncoded
-//    @POST("/api/users?")
-//    Call<UserList> doCreateUserWithField(@Field("name") String name, @Field("job") String job);
 }
 

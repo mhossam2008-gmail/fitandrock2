@@ -18,19 +18,24 @@
         android:roundIcon="@drawable/logo_temp"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".PlanDetailsActivity"></activity>
         <activity
             android:name=".TrainingPlanActivity"
             android:label="@string/title_activity_training_plan"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation = "portrait"></activity>
-        <activity android:name=".ForgetPasswordActivity"
-            android:screenOrientation = "portrait"/>
-        <activity android:name=".EditProfileActivity"
-            android:screenOrientation = "portrait"/>
-        <activity android:name=".ProfileActivity"
-            android:screenOrientation = "portrait"/>
-        <activity android:name=".ui.activity.SplashActivity"
-            android:screenOrientation = "portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".ForgetPasswordActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".EditProfileActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ProfileActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.SplashActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -39,20 +44,26 @@
         </activity>
         <activity
             android:name=".ui.activity.NewsFeedActivity"
-            android:screenOrientation = "portrait"
-            android:label="@string/title_activity_news_feed" />
-        <activity android:name=".ui.activity.SignupActivity"
-            android:screenOrientation = "portrait"/>
-        <activity android:name=".ui.activity.RegisterationSuccessActivity"
-            android:screenOrientation = "portrait"/>
-        <activity android:name=".ui.activity.TermsAndAgreement"
-            android:screenOrientation = "portrait"/>
-        <activity android:name=".ui.activity.CommentsActivity"
-            android:screenOrientation = "portrait"/>
-        <activity android:name=".ui.activity.LoginActivity"
-            android:screenOrientation = "portrait"/>
-        <activity android:name=".ui.activity.MainActivity"
-            android:screenOrientation = "portrait"/>
+            android:label="@string/title_activity_news_feed"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.SignupActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.RegisterationSuccessActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.TermsAndAgreement"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.CommentsActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.LoginActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.MainActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

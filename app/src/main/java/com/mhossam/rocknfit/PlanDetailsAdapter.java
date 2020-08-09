@@ -8,28 +8,22 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.mhossam.rocknfit.API.APIClient;
 import com.mhossam.rocknfit.API.APIInterface;
 import com.mhossam.rocknfit.dummy.DummyContent.DummyItem;
 import com.mhossam.rocknfit.model.LoggedInUser;
-import com.mhossam.rocknfit.model.PredefinedClass;
-import com.mhossam.rocknfit.model.TrainingClass;
+import com.mhossam.rocknfit.model.PlanDetails;
 import com.mhossam.rocknfit.model.TrainingPlan;
-import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,25 +40,22 @@ import retrofit2.Response;
  * {@link RecyclerView.Adapter} that can display a {@link DummyItem}.
  * TODO: Replace the implementation with code for your data type.
  */
-public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapter.ViewHolder> {
+public class PlanDetailsAdapter extends RecyclerView.Adapter<PlanDetailsAdapter.ViewHolder> {
 
     private final Context context;
     private final APIInterface apiInterface;
-    private final TrainingPlansFragment parentFragment;
-    private List<TrainingPlan> mValues;
+    private List<PlanDetails> mValues;
     private LoggedInUser currentUser;
 
-    public TrainingPlanAdapter(List<TrainingPlan> items, Context context, LoggedInUser currentUser, TrainingPlansFragment trainingPlansFragment) {
+    public PlanDetailsAdapter(List<PlanDetails> items, Context context, LoggedInUser currentUser) {
         mValues = items;
         this.context = context;
         this.currentUser = currentUser;
         apiInterface = APIClient.getClient().create(APIInterface.class);
-        parentFragment = trainingPlansFragment;
-
     }
 
 
-    public void updateItems(List<TrainingPlan> items) {
+    public void updateItems(List<PlanDetails> items) {
         mValues = new ArrayList<>();
         mValues.addAll(items);
         notifyDataSetChanged();
@@ -74,15 +65,15 @@ public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapte
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_training_plan, parent, false);
+                .inflate(R.layout.item_plan_details, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-        holder.tvPlanName.setText(mValues.get(position).getPlanName());
-        holder.tvPlanName.setOnClickListener(new View.OnClickListener() {
+        holder.tvDetailsName.setText("Day "+mValues.get(position).getDayNumber());
+        holder.tvDetailsName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(context , PlanDetailsActivity.class);
@@ -90,7 +81,10 @@ public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapte
                 context.startActivity(i);
             }
         });
-        holder.tvPlanDays.setText(holder.mItem.getDaysCounter());
+        holder.tvDateRange.setText(holder.mItem.getWorkoutName());
+        String details = "Sets: "+holder.mItem.getSetsNo()+", Reps: "+holder.mItem.getRepsNo()+", "+holder.mItem.getKG()+" KGs";
+        holder.postTextTV.setText(details);
+//        holder.tvPlanDays.setText(holder.mItem.getDaysCounter());
 //        holder.postTextTV.setText(mValues.get(position).getAdditionalInfo());
 //        String userProfilePhoto = "https://www.fitandrock.com/ProfilePictures/Org"+mValues.get(position).getAccountImage();
 //        Picasso.get()
@@ -99,13 +93,7 @@ public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapte
 //                .fit()
 //                .into(holder.ivFeedCenter);
 //        String dateRange = mValues.get(position).getClassStart()+" - "+mValues.get(position).getClassEnd();
-        holder.tvDateRange.setText(holder.mItem.getCreationDate());
-        holder.btnMore.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(context, "Details requested", Toast.LENGTH_SHORT).show();
-            }
-        });
+//        holder.tvDateRange.setText(holder.mItem.getCreationDate());
 //        holder.btnCopyPlan.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View view) {
@@ -154,25 +142,34 @@ public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapte
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        public TrainingPlan mItem;
+        public PlanDetails mItem;
         //
-        @BindView(R.id.tvPlanName)
-        TextView tvPlanName;
-        @BindView(R.id.tvPlanDays)
-        TextView tvPlanDays;
-        //        @BindView(R.id.ivFeedCenter)
-//        ImageView ivFeedCenter;
+        @BindView(R.id.tvDetailsName)
+        TextView tvDetailsName;
+//        @BindView(R.id.tvPlanDays)
+//        TextView tvPlanDays;
+//        //        @BindView(R.id.ivFeedCenter)
+////        ImageView ivFeedCenter;
         @BindView(R.id.tvDateRange)
         TextView tvDateRange;
 
-        @BindView(R.id.btnMore)
-        ImageButton btnMore;
-//        @BindView(R.id.tvGender)
-//        TextView tvGender;
-//        @BindView(R.id.btnDelete)
-//        Button btnDelete;
-//        @BindView(R.id.btnEdit)
-//        ImageView btnEdit;
+        @BindView(R.id.postTextTV)
+        TextView postTextTV;
+//
+//        @BindView(R.id.btnCopyPlan)
+//        Button btnCopyPlan;
+//
+//        @BindView(R.id.btnInvitePlan)
+//        Button btnInvitePlan;
+//
+//        @BindView(R.id.btnDeletePlan)
+//        ImageButton btnDeletePlan;
+////        @BindView(R.id.tvGender)
+////        TextView tvGender;
+////        @BindView(R.id.btnDelete)
+////        Button btnDelete;
+////        @BindView(R.id.btnEdit)
+////        ImageView btnEdit;
 
         public ViewHolder(View view) {
             super(view);
@@ -258,7 +255,7 @@ public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapte
                             if (resource == null || resource.equals("null")) {
                                 Toast.makeText(context, "Plan Deleted Successfully", Toast.LENGTH_SHORT).show();
                                 changeSortPopUp.dismiss();
-                                parentFragment.getTrainingPlans();
+//                                parentFragment.getTrainingPlans();
                             }else{
                                 Toast.makeText(context, resource, Toast.LENGTH_SHORT).show();
                             }
@@ -321,7 +318,7 @@ public class TrainingPlanAdapter extends RecyclerView.Adapter<TrainingPlanAdapte
                             if (resource == null || resource.equals("null")) {
                                 Toast.makeText(context, "Plan Copied Successfully", Toast.LENGTH_SHORT).show();
                                 changeSortPopUp.dismiss();
-                                parentFragment.getTrainingPlans();
+//                                parentFragment.getTrainingPlans();
 //                                ((TrainingPlanActivity)context).recreate();
                             }else{
                                 Toast.makeText(context, resource, Toast.LENGTH_SHORT).show();

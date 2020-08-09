@@ -1,8 +1,4 @@
 <resources>
-    <plurals name="likes_count">
-        <item quantity="one">%d like</item>
-        <item quantity="other">%d likes</item>
-    </plurals>
     <string name="app_name">Fit And Rock</string>
     <string name="sign_in">Sign In</string>
     <string name="new_member">New Member</string>
@@ -32,7 +28,6 @@
     <string name="forget_password_title">Reset Password</string>
     <string name="title_classes">Classes</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_training_plan">TrainingPlanActivity</string>
     <string name="training_plan_tab1_title">Training Plans</string>
     <string name="training_plan_tab2_title">Daily Progress</string>
